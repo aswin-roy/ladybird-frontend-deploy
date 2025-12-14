@@ -1,0 +1,102 @@
+import React from 'react';
+
+export interface Item {
+  id: number;
+  name: string;
+  code: string;
+  type: string;
+  barcode: string;
+  orderNo: string;
+  dateTime: string;
+  category: string;
+  subCategory: string;
+  stock: number;
+  saleRate: number;
+  amount: number;
+}
+
+export enum FilterTimePeriod {
+  ALL = 'All',
+  TODAY = 'Today',
+  THIS_WEEK = 'This Week',
+  THIS_MONTH = 'This Month'
+}
+
+export interface NavItem {
+  label: string;
+  icon?: React.ReactNode;
+  active?: boolean;
+  subItems?: string[];
+}
+
+// --- New Interfaces based on Prompt ---
+
+export interface DashboardStats {
+  today_sales: number;
+  monthly_sales: number;
+  pending_orders: number;
+  ready_orders: number;
+  unpaid_bills: number;
+  upcoming_delivery: Array<{ name: string; delivery_date: string }>;
+}
+
+export interface Customer {
+  id: number;
+  name: string;
+  phone: string;
+  orders: number;
+  address?: string;
+}
+
+export interface WorkerAssignment {
+  name: string;
+  task: 'Cutting' | 'Stitching';
+  commission: number;
+}
+
+export interface Order {
+  id: number;
+  customer: string;
+  phone?: string;
+  item: string;
+  status: 'Pending' | 'Cutting' | 'Stitching' | 'Ready' | 'Delivered' | 'In Progress';
+  delivery_date?: string;
+  workers: WorkerAssignment[];
+}
+
+export interface Bill {
+  bill_no: string;
+  customer: string;
+  phone?: string; // Added phone for search/invoice
+  amount: number;
+  paidAmount?: number; // Added for advance/partial payments
+  status: 'Paid' | 'Unpaid';
+  date: string;
+  paymentMode: 'Cash' | 'Card' | 'UPI' | 'Online';
+}
+
+export interface Product {
+  id: number;
+  name: string;
+  sku: string;
+  category: string;
+  price: number;
+  stock: number;
+}
+
+export interface Worker {
+  id: number;
+  name: string;
+  role: string;
+  active_orders: number;
+  completed_orders: number;
+  total_commission: number;
+  // Optional reporting fields
+  orders?: Order[];
+  cutting_earnings?: number;
+  stitching_earnings?: number;
+}
+
+export type ViewState = 'dashboard' | 'customers' | 'orders' | 'workSchedule' | 'measurements' | 'products' | 'sizeCharts' | 'salesEntry' | 'salesReport' | 'workerReport';
+
+
