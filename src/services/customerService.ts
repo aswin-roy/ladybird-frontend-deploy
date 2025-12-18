@@ -119,47 +119,78 @@ export const customerService = {
 };*/
 // final
 
-import React, { useEffect, useState } from 'react';
-import { customerService } from '@/services/customerService';
-import { Customer } from '@/types/types';
+import { apiClient } from './api';
+import { Customer } from '../types/types';
 
-const CustomersPage = () => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
+export interface CreateCustomerData {
+  name: string;
+  phone: string;
+  address?: string;
+}
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const data = await customerService.getAll();
-        console.log('Customers:', data); // check if data is coming
-        setCustomers(data);
-      } catch (err) {
-        console.error('Error loading customers:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
+export interface UpdateCustomerData extends Partial<CreateCustomerData> {
+  id: number;
+}
 
-  if (loading) return <p>Loading customers...</p>;
-  if (customers.length === 0) return <p>No customers found</p>;
+// Backend customer shape
+interface BackendCustomer {
+  _id: string;
+  customername: string;
+  customerphone: string | number;
+  customeraddress?: string;
+}
 
-  return (
-    <div>
-      <h1>Customers</h1>
-      <ul>
-        {customers.map((c) => (
-          <li key={c.id}>
-            <strong>{c.name}</strong> - {c.phone} - {c.address}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+// Convert backend → frontend
+const mapCustomer = (c: BackendCustomer, index: number): Customer => ({
+  id: index + 1, // UI-only id
+  name: c.customername,
+  phone: String(c.customerphone ?? ''),
+  orders: 0, // default, backend doesn't expose
+  address: c.customeraddress ?? '',
+});
+
+export const customerService = {
+  async getAll(): Promise<Customer[]> {
+    const response = await apiClient.get<{ data: BackendCustomer[] }>('/customers');
+    const list = Array.isArray(response.data) ? response.data : [];
+    return list.map(mapCustomer);
+  },
+
+  async getById(id: number): Promise<Customer> {
+    const response = await apiClient.get<{ data: BackendCustomer }>(`/customers/${id}`);
+    return mapCustomer(response.data, 0);
+  },
+
+  async create(data: CreateCustomerData): Promise<Customer> {
+    const payload = {
+      customername: data.name,
+      customerphone: data.phone,
+      customeraddress: data.address,
+    };
+    const response = await apiClient.post<{ data: BackendCustomer }>('/customers', payload);
+    return mapCustomer(response.data, 0);
+  },
+
+  async update(data: UpdateCustomerData): Promise<Customer> {
+    const { id, name, phone, address } = data;
+    const payload: Partial<BackendCustomer> = {
+      ...(name !== undefined && { customername: name }),
+      ...(phone !== undefined && { customerphone: phone }),
+      ...(address !== undefined && { customeraddress: address }),
+    };
+    const response = await apiClient.put<{ data: BackendCustomer }>(`/customers/${id}`, payload);
+    return mapCustomer(response.data, 0);
+  },
+
+  async delete(id: number): Promise<void> {
+    await apiClient.delete(`/customers/${id}`);
+  },
+
+  async bulkDelete(ids: number[]): Promise<void> {
+    if (!Array.isArray(ids)) return;
+    await Promise.all(ids.map((id) => apiClient.delete(`/customers/${id}`)));
+  },
 };
-
-export default CustomersPage;
 
 
 
