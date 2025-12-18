@@ -1,4 +1,4 @@
-import { apiClient } from './api';
+/*import { apiClient } from './api';
 import { Customer } from '../types/types';
 
 export interface CreateCustomerData {
@@ -36,10 +36,10 @@ export const customerService = {
   async bulkDelete(ids: number[]): Promise<void> {
     return apiClient.post('/customers/bulk-delete', { ids });
   },
-};
+};*/
 
 //
-/*import { apiClient } from './api';
+import { apiClient } from './api';
 import { Customer } from '../types/types';
 
 export interface CreateCustomerData {
@@ -113,7 +113,8 @@ export const customerService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/customers/${id}`)));
   },
 };
-*/
+
+
 
 
 
