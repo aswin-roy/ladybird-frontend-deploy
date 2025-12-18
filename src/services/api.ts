@@ -1,5 +1,5 @@
 // Base API client configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export interface ApiError {
   message: string;
@@ -91,6 +91,7 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);
+
 
 
 
