@@ -54,18 +54,19 @@ export const measurementService = {
 
 import { apiClient } from './api';
 
-// Shape returned by backend
+// Backend shape
 export interface BackendMeasurement {
   _id: string;
   customer_id: string;
-  customer_name: string;
+  customer_name?: string; // might be undefined
   measurement_date: string;
   values: Record<string, string>;
   notes?: string;
 }
 
+// Frontend shape
 export interface Measurement {
-  id: string; // frontend ID (MongoDB _id)
+  id: string;
   customer_id: string;
   customer_name: string;
   measurement_date: string;
@@ -85,11 +86,11 @@ export interface UpdateMeasurementData extends Partial<CreateMeasurementData> {
   id: string;
 }
 
-// Helper to convert backend → frontend
+// Convert backend → frontend safely
 const mapMeasurement = (m: BackendMeasurement): Measurement => ({
   id: m._id,
   customer_id: m.customer_id,
-  customer_name: m.customer_name,
+  customer_name: m.customer_name ?? 'Unknown Customer', // <-- default if missing
   measurement_date: m.measurement_date,
   values: m.values,
   notes: m.notes,
@@ -133,6 +134,8 @@ export const measurementService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/measurements/${id}`)));
   },
 };
+
+
 
 
 
