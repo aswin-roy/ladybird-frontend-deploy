@@ -44,7 +44,7 @@ export interface CreateWorkerData {
 }
 
 export interface UpdateWorkerData extends Partial<CreateWorkerData> {
-  id: string; // <-- use string for MongoDB _id
+  id: string; // Use string for MongoDB _id
 }
 
 // Backend worker shape
@@ -57,8 +57,8 @@ interface BackendWorker {
 // Convert backend → frontend
 const mapWorker = (w: BackendWorker): Worker => ({
   id: w._id,
-  name: w.name,
-  role: w.role,
+  name: w.name || '',
+  role: w.role || '',
 });
 
 export const workerService = {
@@ -93,6 +93,8 @@ export const workerService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/workers/${id}`)));
   },
 };
+
+
 
 
 
