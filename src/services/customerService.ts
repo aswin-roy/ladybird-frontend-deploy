@@ -39,7 +39,7 @@ export const customerService = {
 };*/
 
 //
-import { apiClient } from './api';
+/*import { apiClient } from './api';
 import { Customer } from '../types/types';
 
 export interface CreateCustomerData {
@@ -116,7 +116,52 @@ export const customerService = {
     if (!Array.isArray(ids)) return;
     await Promise.all(ids.map((id) => apiClient.delete(`/customers/${id}`)));
   },
+};*/
+// final
+
+import React, { useEffect, useState } from 'react';
+import { customerService } from '@/services/customerService';
+import { Customer } from '@/types/types';
+
+const CustomersPage = () => {
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const data = await customerService.getAll();
+        console.log('Customers:', data); // check if data is coming
+        setCustomers(data);
+      } catch (err) {
+        console.error('Error loading customers:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (loading) return <p>Loading customers...</p>;
+  if (customers.length === 0) return <p>No customers found</p>;
+
+  return (
+    <div>
+      <h1>Customers</h1>
+      <ul>
+        {customers.map((c) => (
+          <li key={c.id}>
+            <strong>{c.name}</strong> - {c.phone} - {c.address}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 };
+
+export default CustomersPage;
+
+
 
 
 
