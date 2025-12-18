@@ -88,32 +88,6 @@ export const orderService = {
 import { apiClient } from './api';
 import { Order } from '../types/types';
 
-// Backend order shape
-interface BackendOrder {
-  _id: string;
-  customer: string;
-  phone?: string;
-  item: string;
-  status?: Order['status'];
-  delivery_date?: string;
-  workers?: Array<{
-    name: string;
-    task: 'Cutting' | 'Stitching';
-    commission: number;
-  }>;
-}
-
-// Convert backend order → frontend Order
-const mapOrder = (o: BackendOrder, index: number): Order => ({
-  id: index + 1, // UI-only numeric id
-  customer: o.customer,
-  phone: o.phone ?? '',
-  item: o.item,
-  status: o.status ?? 'Pending',
-  delivery_date: o.delivery_date ?? '',
-  workers: o.workers ?? [],
-});
-
 export interface CreateOrderData {
   customer: string;
   phone?: string;
@@ -128,8 +102,30 @@ export interface CreateOrderData {
 }
 
 export interface UpdateOrderData extends Partial<CreateOrderData> {
-  id: number;
+  id: string; // <-- use string _id
 }
+
+// Backend order shape
+interface BackendOrder {
+  _id: string;
+  customer: string;
+  phone?: string;
+  item: string;
+  status?: string;
+  delivery_date?: string;
+  workers?: Array<{ name: string; task: 'Cutting' | 'Stitching'; commission: number }>;
+}
+
+// Convert backend → frontend
+const mapOrder = (o: BackendOrder): Order => ({
+  id: o._id, // <-- use real MongoDB _id
+  customer: o.customer,
+  phone: o.phone ?? '',
+  item: o.item,
+  status: o.status ?? 'Pending',
+  delivery_date: o.delivery_date ?? '',
+  workers: o.workers ?? [],
+});
 
 export const orderService = {
   // GET all orders
@@ -140,29 +136,36 @@ export const orderService = {
   },
 
   // GET order by ID
-  async getById(id: number): Promise<Order> {
+  async getById(id: string): Promise<Order> {
     const response = await apiClient.get<{ data: BackendOrder }>(`/orders/${id}`);
-    return mapOrder(response.data, 0);
+    return mapOrder(response.data);
   },
 
   // CREATE order
   async create(data: CreateOrderData): Promise<Order> {
     const response = await apiClient.post<{ data: BackendOrder }>('/orders', data);
-    return mapOrder(response.data, 0);
+    return mapOrder(response.data);
   },
 
   // UPDATE order
   async update(data: UpdateOrderData): Promise<Order> {
     const { id, ...updateData } = data;
     const response = await apiClient.put<{ data: BackendOrder }>(`/orders/${id}`, updateData);
-    return mapOrder(response.data, 0);
+    return mapOrder(response.data);
   },
 
   // DELETE order
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     await apiClient.delete(`/orders/${id}`);
   },
+
+  // BULK delete (sequential)
+  async bulkDelete(ids: string[]): Promise<void> {
+    if (!Array.isArray(ids)) return;
+    await Promise.all(ids.map((id) => apiClient.delete(`/orders/${id}`)));
+  },
 };
+
 
 
 
