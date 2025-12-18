@@ -41,6 +41,22 @@ export const customerService = {
     return mapCustomer(response.data, 0);
   },
 
+  async getByQuery(query: string): Promise<Customer[]> {
+    try {
+      const response = await apiClient.get<{ data: BackendCustomer[] }>(`/customers?q=${encodeURIComponent(query)}`);
+      const list = Array.isArray(response.data) ? response.data : [];
+      return list.map((c, index) => mapCustomer(c, index));
+    } catch (err) {
+      // If backend doesn't support query param, fall back to client-side filtering
+      const allCustomers = await this.getAll();
+      const queryLower = query.toLowerCase();
+      return allCustomers.filter(c => 
+        c.name.toLowerCase().includes(queryLower) || 
+        c.phone.includes(query)
+      );
+    }
+  },
+
   async create(data: CreateCustomerData): Promise<Customer> {
     const payload = {
       customername: data.name,
@@ -154,6 +170,7 @@ export const customerService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/customers/${id}`)));
   },
 };*/
+
 
 
 
