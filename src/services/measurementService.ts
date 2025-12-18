@@ -87,14 +87,24 @@ export interface UpdateMeasurementData extends Partial<CreateMeasurementData> {
 }
 
 // Convert backend → frontend safely
-const mapMeasurement = (m: BackendMeasurement): Measurement => ({
+/*const mapMeasurement = (m: BackendMeasurement): Measurement => ({
   id: m._id,
   customer_id: m.customer_id,
   customer_name: m.customer_name ?? 'Unknown Customer', // <-- default if missing
   measurement_date: m.measurement_date,
   values: m.values,
   notes: m.notes,
+});*/
+// Convert backend → frontend safely
+const mapMeasurement = (m: BackendMeasurement): Measurement => ({
+  id: m._id,
+  customer_id: m.customer_id,
+  customer_name: m.customer_name ?? 'Unknown Customer', // safe default
+  measurement_date: m.measurement_date,
+  values: m.values ?? {}, // <-- ensure values is always an object
+  notes: m.notes,
 });
+
 
 export const measurementService = {
   async getAll(): Promise<Measurement[]> {
@@ -134,6 +144,7 @@ export const measurementService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/measurements/${id}`)));
   },
 };
+
 
 
 
