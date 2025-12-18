@@ -1,31 +1,82 @@
 import { apiClient } from './api';
+import { Order } from '../types/types';
+import { customerService } from './customerService'; // to fetch customer details
 
-export interface Customer {
-  id: string;
-  name: string;
-  phone: string;
-}
-
-interface BackendCustomer {
+// Backend shape
+interface BackendOrder {
   _id: string;
-  customername: string;
-  customerphone: number;
+  customerId: string; // just the ID
+  item: string;
+  status: string;
+  deliveryDate: string;
+  workerAssignment?: any[];
 }
 
-const mapCustomer = (c: BackendCustomer): Customer => ({
-  id: c._id,
-  name: c.customername ?? '',
-  phone: String(c.customerphone ?? ''),
-});
+// Map backend → frontend
+const mapOrder = async (o: BackendOrder): Promise<Order> => {
+  let customerName = '';
+  let customerPhone = '';
 
-export const customerService = {
-  async getAll(): Promise<Customer[]> {
-    const response = await apiClient.get<{ data: BackendCustomer[] }>('/customers');
-    return Array.isArray(response.data?.data)
-      ? response.data.data.map(mapCustomer)
-      : [];
+  try {
+    const customer = await customerService.getById(o.customerId);
+    customerName = customer.name;
+    customerPhone = customer.phone;
+  } catch {
+    customerName = 'Unknown';
+    customerPhone = '';
+  }
+
+  return {
+    id: o._id,
+    customer: customerName,
+    phone: customerPhone,
+    item: o.item,
+    status: o.status as Order['status'],
+    delivery_date: o.deliveryDate,
+    workers: o.workerAssignment ?? [],
+  };
+};
+
+export const orderService = {
+  async getAll(): Promise<Order[]> {
+    const response = await apiClient.get<{ data: BackendOrder[] }>('/orders');
+    const list = Array.isArray(response.data?.data) ? response.data.data : [];
+    return Promise.all(list.map(mapOrder));
+  },
+
+  async getById(id: string): Promise<Order> {
+    const response = await apiClient.get<{ data: BackendOrder }>(`/orders/${id}`);
+    return mapOrder(response.data.data);
+  },
+
+  async create(data: {
+    customerId: string; // just send ID
+    item: string;
+    status?: string;
+    deliveryDate: string;
+  }): Promise<Order> {
+    const response = await apiClient.post<{ data: BackendOrder }>('/orders', data);
+    return mapOrder(response.data.data);
+  },
+
+  async update(
+    id: string,
+    data: Partial<{
+      customerId: string;
+      item: string;
+      status: string;
+      deliveryDate: string;
+    }>
+  ): Promise<Order> {
+    const response = await apiClient.put<{ data: BackendOrder }>(`/orders/${id}`, data);
+    return mapOrder(response.data.data);
+  },
+
+  async delete(id: string): Promise<void> {
+    await apiClient.delete(`/orders/${id}`);
   },
 };
+;
 
 
 
@@ -114,6 +165,7 @@ export const orderService = {
     await apiClient.delete(`/orders/${id}`);
   },
 };*/
+
 
 
 
