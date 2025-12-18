@@ -34,7 +34,7 @@ export const authService = {
     return response;
   },
 
-  async signup(data: SignUpData): Promise<AuthResponse> {
+  /*async signup(data: SignUpData): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/signup', {
       name: data.name,
       email: data.email,
@@ -44,7 +44,21 @@ export const authService = {
       localStorage.setItem('auth_token', response.token);
     }
     return response;
-  },
+  },*/
+  async signup(data: SignUpData): Promise<AuthResponse> {
+  const response = await apiClient.post<AuthResponse>('/auth/register', {
+    name: data.name,
+    email: data.email,
+    password: data.password,
+  });
+
+  if (response.token) {
+    localStorage.setItem('auth_token', response.token);
+  }
+
+  return response;
+},
+
 
   async forgotPassword(data: ForgotPasswordData): Promise<{ message: string }> {
     return apiClient.post('/auth/forgot-password', data);
@@ -58,6 +72,7 @@ export const authService = {
     return !!localStorage.getItem('auth_token');
   },
 };
+
 
 
 
