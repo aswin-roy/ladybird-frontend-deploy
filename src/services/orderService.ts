@@ -39,7 +39,7 @@ export const orderService = {
   async delete(id: number): Promise<void> {
     return apiClient.delete(`/orders/${id}`);
   },
-};*/
+};
 
 // final
 /*import { apiClient } from './api';
@@ -165,6 +165,7 @@ export const orderService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/orders/${id}`)));
   },
 };*/
+
 
 
 
