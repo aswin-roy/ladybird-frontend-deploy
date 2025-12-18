@@ -450,7 +450,7 @@ export const Orders: React.FC = () => {
 
 
 
-import React, { useState, useEffect } from 'react';
+mport React, { useState, useEffect, useCallback } from 'react';
 import { Order, WorkerAssignment, Customer } from '../types/types';
 import { InputField, SelectField, Pagination } from '../components';
 import { orderService } from '../services/orderService';
@@ -472,6 +472,12 @@ export const Orders: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
+    
+    // Customer search state
+    const [customerSearchTerm, setCustomerSearchTerm] = useState('');
+    const [customerSuggestions, setCustomerSuggestions] = useState<Customer[]>([]);
+    const [isSearchingCustomers, setIsSearchingCustomers] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -509,7 +515,76 @@ export const Orders: React.FC = () => {
             delivery_date: new Date().toISOString().split('T')[0],
             workers: []
         });
+        setCustomerSearchTerm('');
+        setCustomerSuggestions([]);
+        setShowSuggestions(false);
     };
+    
+    const handleSelectCustomer = useCallback((customer: Customer) => {
+        if (editingOrder) {
+            setEditingOrder({
+                ...editingOrder,
+                customerId: customer._id || '',
+                customer: customer.name,
+                phone: customer.phone
+            });
+        }
+        setCustomerSearchTerm(customer.name);
+        setShowSuggestions(false);
+        setCustomerSuggestions([]);
+    }, [editingOrder]);
+    
+    const handleCustomerSearchChange = (value: string) => {
+        setCustomerSearchTerm(value);
+        if (!value) {
+            // Clear customer fields if search is cleared
+            if (editingOrder) {
+                setEditingOrder({
+                    ...editingOrder,
+                    customerId: '',
+                    customer: '',
+                    phone: ''
+                });
+            }
+            setCustomerSuggestions([]);
+            setShowSuggestions(false);
+        }
+    };
+    
+    // Debounced customer search
+    useEffect(() => {
+        if (!editingOrder) return;
+        
+        const searchCustomers = async () => {
+            if (customerSearchTerm.trim().length < 2) {
+                setCustomerSuggestions([]);
+                setShowSuggestions(false);
+                return;
+            }
+            
+            try {
+                setIsSearchingCustomers(true);
+                const results = await customerService.getByQuery(customerSearchTerm);
+                setCustomerSuggestions(results);
+                
+                // Auto-select if exactly one match found
+                if (results.length === 1) {
+                    handleSelectCustomer(results[0]);
+                } else {
+                    setShowSuggestions(results.length > 0);
+                }
+            } catch (err) {
+                console.error('Error searching customers:', err);
+                setCustomerSuggestions([]);
+                setShowSuggestions(false);
+            } finally {
+                setIsSearchingCustomers(false);
+            }
+        };
+        
+        const timeoutId = setTimeout(searchCustomers, 300);
+        return () => clearTimeout(timeoutId);
+    }, [customerSearchTerm, editingOrder, handleSelectCustomer]);
 
     const handleUpdateOrder = async () => {
         if (!editingOrder) return;
@@ -682,26 +757,56 @@ export const Orders: React.FC = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="col-span-2">
                                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Customer</label>
-                                    <SelectField 
-                                        value={editingOrder.customerId || ''} 
-                                        onChange={(e) => {
-                                            const selectedCustomer = customers.find(c => c._id === e.target.value);
-                                            setEditingOrder({
-                                                ...editingOrder, 
-                                                customerId: e.target.value,
-                                                customer: selectedCustomer?.name || '',
-                                                phone: selectedCustomer?.phone || ''
-                                            });
-                                        }} 
-                                        disabled={isSubmitting}
-                                    >
-                                        <option value="">Select Customer</option>
-                                        {customers.map(c => (
-                                            <option key={c._id || c.id} value={c._id || ''}>
-                                                {c.name} {c.phone ? `(${c.phone})` : ''}
-                                            </option>
-                                        ))}
-                                    </SelectField>
+                                    <div className="relative">
+                                        <InputField 
+                                            value={customerSearchTerm} 
+                                            onChange={(e) => handleCustomerSearchChange(e.target.value)}
+                                            placeholder="Search by customer name or phone..."
+                                            disabled={isSubmitting}
+                                            onFocus={() => {
+                                                if (customerSuggestions.length > 0) {
+                                                    setShowSuggestions(true);
+                                                }
+                                            }}
+                                            onBlur={() => {
+                                                // Delay hiding to allow click on suggestion
+                                                setTimeout(() => setShowSuggestions(false), 200);
+                                            }}
+                                        />
+                                        {isSearchingCustomers && (
+                                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                                <Loader2 className="animate-spin text-gray-400" size={16} />
+                                            </div>
+                                        )}
+                                        {showSuggestions && customerSuggestions.length > 0 && (
+                                            <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 mt-1 max-h-48 overflow-y-auto">
+                                                {customerSuggestions.map(customer => (
+                                                    <div 
+                                                        key={customer._id || customer.id}
+                                                        onMouseDown={(e) => {
+                                                            e.preventDefault();
+                                                            handleSelectCustomer(customer);
+                                                        }}
+                                                        className="p-3 hover:bg-purple-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                                                    >
+                                                        <p className="font-medium text-gray-900">{customer.name}</p>
+                                                        <p className="text-xs text-gray-500">{customer.phone || 'No phone'}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {showSuggestions && customerSearchTerm.length >= 2 && customerSuggestions.length === 0 && !isSearchingCustomers && (
+                                            <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 mt-1 p-3">
+                                                <p className="text-sm text-gray-500">No customers found</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {editingOrder.customer && (
+                                        <div className="mt-2 text-xs text-gray-600">
+                                            Selected: <span className="font-semibold">{editingOrder.customer}</span>
+                                            {editingOrder.phone && <span className="ml-2">({editingOrder.phone})</span>}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="col-span-2">
                                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Item</label>
@@ -895,7 +1000,13 @@ export const Orders: React.FC = () => {
                                                 <Eye size={16} />
                                             </button>
                                             <button 
-                                                onClick={() => setEditingOrder(order)} 
+                                                onClick={() => {
+                                                    setEditingOrder(order);
+                                                    // Set customer search term when editing
+                                                    setCustomerSearchTerm(order.customer || '');
+                                                    setCustomerSuggestions([]);
+                                                    setShowSuggestions(false);
+                                                }} 
                                                 className="text-gray-400 hover:text-blue-600 transition-colors bg-gray-50 p-2 rounded-full hover:bg-blue-50" 
                                                 title="Edit Order"
                                             >
@@ -920,6 +1031,4 @@ export const Orders: React.FC = () => {
         </div>
     );
 };
-
-
 
