@@ -99,8 +99,6 @@ export interface Worker {
 
 export type ViewState = 'dashboard' | 'customers' | 'orders' | 'workSchedule' | 'measurements' | 'products' | 'sizeCharts' | 'salesEntry' | 'salesReport' | 'workerReport';
 */
-import React from 'react';
-
 export interface Item {
   id: number;
   name: string;
