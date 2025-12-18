@@ -129,7 +129,7 @@ export interface CreateCustomerData {
 }
 
 export interface UpdateCustomerData extends Partial<CreateCustomerData> {
-  id: number;
+  id: string; // <-- Use string to match MongoDB _id
 }
 
 // Backend customer shape
@@ -141,8 +141,8 @@ interface BackendCustomer {
 }
 
 // Convert backend → frontend
-const mapCustomer = (c: BackendCustomer, index: number): Customer => ({
-  id: index + 1, // UI-only id
+const mapCustomer = (c: BackendCustomer): Customer => ({
+  id: c._id, // <-- Use _id as id
   name: c.customername,
   phone: String(c.customerphone ?? ''),
   orders: 0, // default, backend doesn't expose
@@ -150,17 +150,20 @@ const mapCustomer = (c: BackendCustomer, index: number): Customer => ({
 });
 
 export const customerService = {
+  // GET all customers
   async getAll(): Promise<Customer[]> {
     const response = await apiClient.get<{ data: BackendCustomer[] }>('/customers');
     const list = Array.isArray(response.data) ? response.data : [];
     return list.map(mapCustomer);
   },
 
-  async getById(id: number): Promise<Customer> {
+  // GET customer by ID
+  async getById(id: string): Promise<Customer> {
     const response = await apiClient.get<{ data: BackendCustomer }>(`/customers/${id}`);
-    return mapCustomer(response.data, 0);
+    return mapCustomer(response.data);
   },
 
+  // CREATE customer
   async create(data: CreateCustomerData): Promise<Customer> {
     const payload = {
       customername: data.name,
@@ -168,9 +171,10 @@ export const customerService = {
       customeraddress: data.address,
     };
     const response = await apiClient.post<{ data: BackendCustomer }>('/customers', payload);
-    return mapCustomer(response.data, 0);
+    return mapCustomer(response.data);
   },
 
+  // UPDATE customer
   async update(data: UpdateCustomerData): Promise<Customer> {
     const { id, name, phone, address } = data;
     const payload: Partial<BackendCustomer> = {
@@ -179,18 +183,22 @@ export const customerService = {
       ...(address !== undefined && { customeraddress: address }),
     };
     const response = await apiClient.put<{ data: BackendCustomer }>(`/customers/${id}`, payload);
-    return mapCustomer(response.data, 0);
+    return mapCustomer(response.data);
   },
 
-  async delete(id: number): Promise<void> {
+  // DELETE customer
+  async delete(id: string): Promise<void> {
     await apiClient.delete(`/customers/${id}`);
   },
 
-  async bulkDelete(ids: number[]): Promise<void> {
+  // BULK delete (sequential)
+  async bulkDelete(ids: string[]): Promise<void> {
     if (!Array.isArray(ids)) return;
     await Promise.all(ids.map((id) => apiClient.delete(`/customers/${id}`)));
   },
 };
+
+
 
 
 
