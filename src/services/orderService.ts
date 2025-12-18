@@ -1,4 +1,4 @@
-/*import { apiClient } from './api';
+import { apiClient } from './api';
 import { Order } from '../types/types';
 
 export interface CreateOrderData {
@@ -15,7 +15,7 @@ export interface CreateOrderData {
 }
 
 export interface UpdateOrderData extends Partial<CreateOrderData> {
-  id: number;
+  id: String;
 }
 
 export const orderService = {
@@ -83,9 +83,9 @@ export const orderService = {
   async delete(id: number): Promise<void> {
     return apiClient.delete(`/orders/${id}`);
   },
-};*/
+};
 //
-import { apiClient } from './api';
+/*import { apiClient } from './api';
 import { Order } from '../types/types';
 
 export interface CreateOrderData {
@@ -164,7 +164,9 @@ export const orderService = {
     if (!Array.isArray(ids)) return;
     await Promise.all(ids.map((id) => apiClient.delete(`/orders/${id}`)));
   },
-};
+};*/
+
+
 
 
 
