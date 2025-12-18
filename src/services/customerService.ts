@@ -70,11 +70,22 @@ const mapCustomer = (c: BackendCustomer, index: number): Customer => ({
 });
 
 export const customerService = {
-  async getAll(): Promise<Customer[]> {
+  /*async getAll(): Promise<Customer[]> {
     const response = await apiClient.get<{ data: BackendCustomer[] }>('/customers');
     const list = Array.isArray(response.data) ? response.data : [];
     return list.map(mapCustomer);
-  },
+  },*/
+  async getAll(): Promise<Customer[]> {
+  const response = await apiClient.get<BackendCustomer[]>('/customers');
+
+  if (!Array.isArray(response)) {
+    console.error('Customers API did not return an array', response);
+    return [];
+  }
+
+  return response.map(mapCustomer);
+}
+
 
   async getById(id: number): Promise<Customer> {
     const response = await apiClient.get<{ data: BackendCustomer }>(`/customers/${id}`);
@@ -113,6 +124,7 @@ export const customerService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/customers/${id}`)));
   },
 };
+
 
 
 
