@@ -1,4 +1,4 @@
-import { apiClient } from './api';
+/*import { apiClient } from './api';
 
 export interface Measurement {
   id: number;
@@ -46,7 +46,92 @@ export const measurementService = {
   async delete(id: number): Promise<void> {
     return apiClient.delete(`/measurements/${id}`);
   },
+};*/
+//
+
+
+
+
+import { apiClient } from './api';
+
+export interface Measurement {
+  id: string; // MongoDB _id
+  customer_id: string;
+  customer_name: string;
+  measurement_date: string;
+  values: Record<string, string>;
+  notes?: string;
+}
+
+export interface CreateMeasurementData {
+  customer_id: string;
+  customer_name: string;
+  measurement_date?: string;
+  values: Record<string, string>;
+  notes?: string;
+}
+
+export interface UpdateMeasurementData extends Partial<CreateMeasurementData> {
+  id: string;
+}
+
+// Backend measurement shape
+interface BackendMeasurement {
+  _id: string;
+  customer_id: string;
+  customer_name: string;
+  measurement_date: string;
+  values: Record<string, string>;
+  notes?: string;
+}
+
+// Map backend → frontend
+const mapMeasurement = (m: BackendMeasurement): Measurement => ({
+  id: m._id,
+  customer_id: m.customer_id,
+  customer_name: m.customer_name,
+  measurement_date: m.measurement_date,
+  values: m.values || {},
+  notes: m.notes || '',
+});
+
+export const measurementService = {
+  async getAll(): Promise<Measurement[]> {
+    const response = await apiClient.get<{ data: BackendMeasurement[] }>('/measurements');
+    const list = Array.isArray(response.data) ? response.data : [];
+    return list.map(mapMeasurement);
+  },
+
+  async getById(id: string): Promise<Measurement> {
+    const response = await apiClient.get<{ data: BackendMeasurement }>(`/measurements/${id}`);
+    return mapMeasurement(response.data);
+  },
+
+  async getByCustomer(customerId: string): Promise<Measurement[]> {
+    const response = await apiClient.get<{ data: BackendMeasurement[] }>(
+      `/measurements/customer/${customerId}`
+    );
+    const list = Array.isArray(response.data) ? response.data : [];
+    return list.map(mapMeasurement);
+  },
+
+  async create(data: CreateMeasurementData): Promise<Measurement> {
+    const response = await apiClient.post<{ data: BackendMeasurement }>('/measurements', data);
+    return mapMeasurement(response.data);
+  },
+
+  async update(data: UpdateMeasurementData): Promise<Measurement> {
+    const { id, ...updateData } = data;
+    const response = await apiClient.put<{ data: BackendMeasurement }>(`/measurements/${id}`, updateData);
+    return mapMeasurement(response.data);
+  },
+
+  async delete(id: string): Promise<void> {
+    await apiClient.delete(`/measurements/${id}`);
+  },
 };
+
+
 
 
 
