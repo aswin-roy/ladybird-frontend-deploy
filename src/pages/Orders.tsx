@@ -451,10 +451,11 @@ export const Orders: React.FC = () => {
 
 
 import React, { useState, useEffect } from 'react';
-import { Order, WorkerAssignment } from '../types/types';
+import { Order, WorkerAssignment, Customer } from '../types/types';
 import { InputField, SelectField, Pagination } from '../components';
 import { orderService } from '../services/orderService';
 import { workerService } from '../services/workerService';
+import { customerService } from '../services/customerService';
 import { Worker } from '../types/types';
 import { Plus, Search, X, Trash2, Edit2, Eye, Loader2 } from 'lucide-react';
 import { ApiError } from '../services/api';
@@ -462,6 +463,7 @@ import { ApiError } from '../services/api';
 export const Orders: React.FC = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [workers, setWorkers] = useState<Worker[]>([]);
+    const [customers, setCustomers] = useState<Customer[]>([]);
     const [editingOrder, setEditingOrder] = useState<Order | null>(null);
     const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -479,15 +481,18 @@ export const Orders: React.FC = () => {
         try {
             setIsLoading(true);
             setError(null);
-            const [ordersData, workersData] = await Promise.all([
+            const [ordersData, workersData, customersData] = await Promise.all([
                 orderService.getAll(),
-                workerService.getAll()
+                workerService.getAll(),
+                customerService.getAll()
             ]);
             setOrders(ordersData);
             setWorkers(workersData);
+            setCustomers(customersData);
         } catch (err) {
             const apiError = err as ApiError;
             setError(apiError.message || 'Failed to load data');
+            console.error('Error loading data:', err);
         } finally {
             setIsLoading(false);
         }
@@ -496,6 +501,7 @@ export const Orders: React.FC = () => {
     const handleNewOrder = () => {
         setEditingOrder({
             id: 0,
+            customerId: '',
             customer: '',
             phone: '',
             item: '',
@@ -507,18 +513,47 @@ export const Orders: React.FC = () => {
 
     const handleUpdateOrder = async () => {
         if (!editingOrder) return;
-        if (!editingOrder.customer || !editingOrder.item) {
-            alert('Customer name and item are required');
+
+        if (!editingOrder.customerId || !editingOrder.item) {
+            alert('Customer and item are required');
             return;
         }
+
         try {
             setIsSubmitting(true);
             setError(null);
+            
+            // Map workers to workerAssignment format
+            const workerAssignment = editingOrder.workers.map(w => {
+                const worker = workers.find(worker => worker.name === w.name);
+                // Use MongoDB _id if available, otherwise fall back to id
+                const workerId = worker ? (worker._id || String(worker.id)) : '';
+                return {
+                    worker: workerId,
+                    task: w.task,
+                    commission: w.commission
+                };
+            }).filter(wa => wa.worker); // Only include valid workers
+
+            const orderData = {
+                customerId: editingOrder.customerId,
+                item: editingOrder.item,
+                status: editingOrder.status,
+                deliveryDate: editingOrder.delivery_date,
+                workerAssignment: workerAssignment.length > 0 ? workerAssignment : undefined
+            };
+            
             if (editingOrder.id === 0) {
-                await orderService.create(editingOrder);
+                await orderService.create(orderData);
             } else {
-                await orderService.update(editingOrder);
+                // Use MongoDB _id if available, otherwise fall back to numeric id
+                const orderId = editingOrder._id || editingOrder.id;
+                await orderService.update({
+                    id: orderId,
+                    ...orderData
+                });
             }
+            
             setEditingOrder(null);
             await loadData();
         } catch (err) {
@@ -530,11 +565,14 @@ export const Orders: React.FC = () => {
         }
     };
 
-    const handleDeleteOrder = async (id: number) => {
+    const handleDeleteOrder = async (order: Order) => {
         if (!window.confirm('Are you sure you want to delete this order?')) return;
+
         try {
             setError(null);
-            await orderService.delete(id);
+            // Use MongoDB _id if available, otherwise fall back to numeric id
+            const orderId = order._id || String(order.id);
+            await orderService.delete(orderId);
             await loadData();
         } catch (err) {
             const apiError = err as ApiError;
@@ -543,7 +581,7 @@ export const Orders: React.FC = () => {
         }
     };
 
-    const filteredOrders = orders.filter(order =>
+    const filteredOrders = orders.filter(order => 
         order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.id.toString().includes(searchTerm) ||
         order.item.toLowerCase().includes(searchTerm)
@@ -594,7 +632,6 @@ export const Orders: React.FC = () => {
                 </div>
             )}
 
-            {/* View Order Modal */}
             {viewingOrder && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="bg-gray-50 rounded-xl shadow-2xl w-full max-w-lg border border-gray-200">
@@ -630,7 +667,6 @@ export const Orders: React.FC = () => {
                 </div>
             )}
 
-            {/* Edit/Create Order Modal */}
             {editingOrder && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="bg-gray-50 rounded-xl shadow-2xl w-full max-w-lg border border-gray-200 max-h-[90vh] flex flex-col">
@@ -645,24 +681,29 @@ export const Orders: React.FC = () => {
                         <div className="p-6 space-y-5 overflow-y-auto">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="col-span-2">
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Customer Name</label>
-                                    <InputField 
-                                        value={editingOrder.customer} 
-                                        onChange={(e) => setEditingOrder({...editingOrder, customer: e.target.value})} 
-                                        placeholder="Enter customer name"
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Customer</label>
+                                    <SelectField 
+                                        value={editingOrder.customerId || ''} 
+                                        onChange={(e) => {
+                                            const selectedCustomer = customers.find(c => c._id === e.target.value);
+                                            setEditingOrder({
+                                                ...editingOrder, 
+                                                customerId: e.target.value,
+                                                customer: selectedCustomer?.name || '',
+                                                phone: selectedCustomer?.phone || ''
+                                            });
+                                        }} 
                                         disabled={isSubmitting}
-                                    />
+                                    >
+                                        <option value="">Select Customer</option>
+                                        {customers.map(c => (
+                                            <option key={c._id || c.id} value={c._id || ''}>
+                                                {c.name} {c.phone ? `(${c.phone})` : ''}
+                                            </option>
+                                        ))}
+                                    </SelectField>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Phone</label>
-                                    <InputField 
-                                        value={editingOrder.phone || ''} 
-                                        onChange={(e) => setEditingOrder({...editingOrder, phone: e.target.value})} 
-                                        placeholder="Phone number"
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-                                <div>
+                                <div className="col-span-2">
                                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Item</label>
                                     <InputField 
                                         value={editingOrder.item} 
@@ -672,8 +713,6 @@ export const Orders: React.FC = () => {
                                     />
                                 </div>
                             </div>
-
-                            {/* Worker Assignments */}
                             <div className="border-t border-gray-100 pt-4">
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Worker Assignments</label>
                                 <div className="space-y-3">
@@ -728,7 +767,6 @@ export const Orders: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
-
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Update Status</label>
@@ -756,7 +794,6 @@ export const Orders: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-
                         <div className="p-4 bg-gray-100 flex justify-end gap-3 border-t border-gray-200 rounded-b-xl mt-auto">
                             <button 
                                 onClick={() => setEditingOrder(null)} 
@@ -778,7 +815,6 @@ export const Orders: React.FC = () => {
                 </div>
             )}
 
-            {/* Header */}
             <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
                 <div>
                     <h3 className="font-bold text-xl text-gray-900">Order Management</h3>
@@ -791,7 +827,10 @@ export const Orders: React.FC = () => {
                             placeholder="Search orders..." 
                             className="pl-10 w-64" 
                             value={searchTerm} 
-                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} 
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setCurrentPage(1);
+                            }} 
                         />
                     </div>
                     <button 
@@ -803,7 +842,6 @@ export const Orders: React.FC = () => {
                 </div>
             </div>
 
-            {/* Orders Table */}
             <div className="flex-1 overflow-auto">
                 {filteredOrders.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-gray-400 py-12">
@@ -835,7 +873,7 @@ export const Orders: React.FC = () => {
                                         {order.workers.length > 0 ? order.workers.map(w => w.name.split(' ')[0]).join(', ') : '-'}
                                     </td>
                                     <td className="px-6 py-4">
-                                                                                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                                             order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' : 
                                             order.status === 'Ready' ? 'bg-green-100 text-green-700 border border-green-200' : 
                                             order.status === 'Cutting' ? 'bg-orange-100 text-orange-700 border border-orange-200' : 
@@ -864,7 +902,7 @@ export const Orders: React.FC = () => {
                                                 <Edit2 size={16} />
                                             </button>
                                             <button 
-                                                onClick={() => handleDeleteOrder(order.id)} 
+                                                onClick={() => handleDeleteOrder(order)} 
                                                 className="text-gray-400 hover:text-red-600 transition-colors bg-gray-50 p-2 rounded-full hover:bg-red-50" 
                                                 title="Delete Order"
                                             >
@@ -878,15 +916,10 @@ export const Orders: React.FC = () => {
                     </table>
                 )}
             </div>
-
-            {/* Pagination */}
-            <Pagination 
-                currentPage={currentPage} 
-                totalPages={totalPages} 
-                onPageChange={setCurrentPage} 
-            />
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
     );
 };
+
 
 
