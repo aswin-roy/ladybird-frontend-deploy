@@ -54,8 +54,18 @@ export const measurementService = {
 
 import { apiClient } from './api';
 
+// Shape returned by backend
+export interface BackendMeasurement {
+  _id: string;
+  customer_id: string;
+  customer_name: string;
+  measurement_date: string;
+  values: Record<string, string>;
+  notes?: string;
+}
+
 export interface Measurement {
-  id: string; // MongoDB _id
+  id: string; // frontend ID (MongoDB _id)
   customer_id: string;
   customer_name: string;
   measurement_date: string;
@@ -75,24 +85,14 @@ export interface UpdateMeasurementData extends Partial<CreateMeasurementData> {
   id: string;
 }
 
-// Backend measurement shape
-interface BackendMeasurement {
-  _id: string;
-  customer_id: string;
-  customer_name: string;
-  measurement_date: string;
-  values: Record<string, string>;
-  notes?: string;
-}
-
-// Map backend → frontend
+// Helper to convert backend → frontend
 const mapMeasurement = (m: BackendMeasurement): Measurement => ({
   id: m._id,
   customer_id: m.customer_id,
   customer_name: m.customer_name,
   measurement_date: m.measurement_date,
-  values: m.values || {},
-  notes: m.notes || '',
+  values: m.values,
+  notes: m.notes,
 });
 
 export const measurementService = {
@@ -108,9 +108,7 @@ export const measurementService = {
   },
 
   async getByCustomer(customerId: string): Promise<Measurement[]> {
-    const response = await apiClient.get<{ data: BackendMeasurement[] }>(
-      `/measurements/customer/${customerId}`
-    );
+    const response = await apiClient.get<{ data: BackendMeasurement[] }>(`/measurements/customer/${customerId}`);
     const list = Array.isArray(response.data) ? response.data : [];
     return list.map(mapMeasurement);
   },
@@ -129,7 +127,13 @@ export const measurementService = {
   async delete(id: string): Promise<void> {
     await apiClient.delete(`/measurements/${id}`);
   },
+
+  async bulkDelete(ids: string[]): Promise<void> {
+    if (!Array.isArray(ids)) return;
+    await Promise.all(ids.map((id) => apiClient.delete(`/measurements/${id}`)));
+  },
 };
+
 
 
 
