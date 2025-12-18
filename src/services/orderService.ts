@@ -1,7 +1,7 @@
 /*import { apiClient } from './api';
 import { Order } from '../types/types';
 
-/* Backend order shape */
+
 interface BackendOrder {
   _id: string;
   customer: string;
@@ -12,7 +12,7 @@ interface BackendOrder {
   workers?: any[];
 }
 
-/* Map backend → frontend */
+
 const mapOrder = (o: BackendOrder): Order => ({
   id: o._id,                 // IMPORTANT: use Mongo _id
   customer: o.customer ?? '',
@@ -140,6 +140,7 @@ export const orderService = {
     await apiClient.delete(`/orders/${id}`);
   },
 };
+
 
 
 
