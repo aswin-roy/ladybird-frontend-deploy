@@ -1,4 +1,4 @@
-import { apiClient } from './api';
+/*import { apiClient } from './api';
 
 export interface CreateSalesEntryData {
   customerId: string; // MongoDB ObjectId string
@@ -62,5 +62,5 @@ export const salesEntryService = {
   async delete(id: string): Promise<void> {
     await apiClient.delete(`/salesentries/${id}`);
   },
-};
+};*/
 
