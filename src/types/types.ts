@@ -99,6 +99,8 @@ export interface Worker {
 
 export type ViewState = 'dashboard' | 'customers' | 'orders' | 'workSchedule' | 'measurements' | 'products' | 'sizeCharts' | 'salesEntry' | 'salesReport' | 'workerReport';
 */
+import React from 'react';
+
 export interface Item {
   id: number;
   name: string;
@@ -187,13 +189,13 @@ export interface Product {
 }
 
 export interface Worker {
-  id: number;
-  _id?: string; // MongoDB _id for backend operations
+  id: string; // MongoDB _id as string
+  _id?: string; // MongoDB _id for backend operations (legacy support)
   name: string;
   role: string;
-  active_orders: number;
-  completed_orders: number;
-  total_commission: number;
+  active_orders?: number; // Optional - may not be present in all responses
+  completed_orders?: number; // Optional - may not be present in all responses
+  total_commission?: number; // Optional - may not be present in all responses
   // Optional reporting fields
   orders?: Order[];
   cutting_earnings?: number;
@@ -201,6 +203,8 @@ export interface Worker {
 }
 
 export type ViewState = 'dashboard' | 'customers' | 'orders' | 'workSchedule' | 'measurements' | 'products' | 'sizeCharts' | 'salesEntry' | 'salesReport' | 'workerReport';
+
+
 
 
 
