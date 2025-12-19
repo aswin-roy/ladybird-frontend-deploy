@@ -181,6 +181,7 @@ export interface Bill {
 
 export interface Product {
   id: number;
+  _id?: string; // MongoDB _id for backend operations
   name: string;
   sku: string;
   category: string;
@@ -203,6 +204,8 @@ export interface Worker {
 }
 
 export type ViewState = 'dashboard' | 'customers' | 'orders' | 'workSchedule' | 'measurements' | 'products' | 'sizeCharts' | 'salesEntry' | 'salesReport' | 'workerReport';
+
+
 
 
 
