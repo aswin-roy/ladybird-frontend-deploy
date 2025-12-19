@@ -66,6 +66,7 @@ interface BackendInventoryItem {
 
 const mapInventoryItem = (item: BackendInventoryItem): Product => ({
   id: 0, // UI uses id mainly as a key; backend uses _id string
+  _id: item._id, // Preserve MongoDB _id for backend operations
   name: item.productname,
   sku: item.skucode,
   category: item.category,
@@ -115,5 +116,7 @@ export const productService = {
     await apiClient.delete(`/inventory/${id}`);
   },
 };
+
+
 
 
