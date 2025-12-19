@@ -3,7 +3,7 @@ import { ViewState, Customer, Product } from '../types/types';
 import { InputField } from '../components/InputField';
 import { productService } from '../services/productService';
 import { customerService } from '../services/customerService';
-import { billService } from '../services/billService';
+import { salesEntryService } from '../services/salesEntryService';
 import { Search, Package, Plus, Minus, Trash2, ShoppingCart, UserCheck, Wallet, CreditCard as CardIcon, Smartphone, Loader2 } from 'lucide-react';
 import { ApiError } from '../services/api';
 
@@ -89,22 +89,69 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
             return;
         }
 
+        // Validate that all products have _id
+        const productsWithoutId = cart.filter(item => !item.product._id);
+        if (productsWithoutId.length > 0) {
+            alert('Some products are missing IDs. Please refresh the page and try again.');
+            return;
+        }
+
         try {
             setIsSubmitting(true);
             setError(null);
             
-            await billService.create({
-                customer: selectedCustomer?.name || 'Walk-in Customer',
-                phone: selectedCustomer?.phone,
-                amount: total,
-                paymentMode: paymentMode,
-                items: cart.map(item => ({
-                    product_id: item.product.id,
-                    product_name: item.product.name,
-                    quantity: item.quantity,
-                    unit_price: item.product.price,
-                    total_price: item.product.price * item.quantity,
-                })),
+            // Get or create walk-in customer if no customer selected
+            let customerId: string;
+            if (selectedCustomer) {
+                customerId = selectedCustomer._id || '';
+                if (!customerId) {
+                    alert('Customer ID is missing. Please select the customer again.');
+                    return;
+                }
+            } else {
+                // Try to find or create a walk-in customer
+                try {
+                    // Use cached customers for search, fallback to API if needed
+                    const walkInCustomers = customers.filter(c => 
+                        c.name.toLowerCase().includes('walk-in')
+                    );
+                    
+                    if (walkInCustomers.length > 0) {
+                        customerId = walkInCustomers[0]._id || '';
+                    } else {
+                        // Create walk-in customer
+                        const newCustomer = await customerService.create({
+                            name: 'Walk-in Customer',
+                            phone: '0000000000',
+                            address: 'Walk-in'
+                        });
+                        customerId = newCustomer._id || '';
+                        // Reload customers to include the new one
+                        const updatedCustomers = await customerService.getAll();
+                        setCustomers(updatedCustomers);
+                    }
+                } catch (err) {
+                    alert('Failed to create walk-in customer. Please select a customer.');
+                    return;
+                }
+            }
+
+            // Convert paymentMode to lowercase for backend
+            const paymentMethod = paymentMode.toLowerCase() as 'cash' | 'card' | 'upi';
+            
+            // Transform items to backend format
+            const items = cart.map(item => ({
+                product: item.product._id!,
+                quantity: item.quantity,
+                rate: item.product.price,
+            }));
+
+            await salesEntryService.create({
+                customerId,
+                items,
+                paymentMethod,
+                paidAmount: total, // Full payment
+                notes: `Sale via ${paymentMode}`
             });
 
             alert(`Sale Completed! Total: ₹${total.toFixed(2)} for ${selectedCustomer?.name || 'Walk-in Customer'} via ${paymentMode}`);
@@ -114,8 +161,10 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
             setPaymentMode('Cash');
         } catch (err) {
             const apiError = err as ApiError;
-            setError(apiError.message || 'Failed to complete sale');
-            alert(apiError.message || 'Failed to complete sale');
+            const errorMessage = apiError.message || 'Failed to complete sale';
+            setError(errorMessage);
+            alert(errorMessage);
+            console.error('Sales entry error:', err);
         } finally {
             setIsSubmitting(false);
         }
