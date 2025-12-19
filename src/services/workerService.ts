@@ -1,4 +1,4 @@
-/*import { apiClient } from './api';
+import { apiClient } from './api';
 import { Worker } from '../types/types';
 
 export interface CreateWorkerData {
@@ -31,10 +31,10 @@ export const workerService = {
   async delete(id: number): Promise<void> {
     return apiClient.delete(`/workers/${id}`);
   },
-};*/
+};
 ///
 
-
+/*
 import { apiClient } from './api';
 import { Worker } from '../types/types';
 
@@ -92,7 +92,9 @@ export const workerService = {
     if (!Array.isArray(ids)) return;
     await Promise.all(ids.map((id) => apiClient.delete(`/workers/${id}`)));
   },
-};
+};*/
+
+
 
 
 
