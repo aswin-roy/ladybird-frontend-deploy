@@ -7,31 +7,83 @@ export interface CreateWorkerData {
 }
 
 export interface UpdateWorkerData extends Partial<CreateWorkerData> {
-  id: number;
+  id: string;
 }
+
+// Backend worker structure
+interface BackendWorker {
+  _id: string;
+  name: string;
+  role: string;
+  isActive?: boolean;
+  createdAt?: string;
+  // Optional report fields (from worker-reports endpoint)
+  active_orders?: number;
+  completed_orders?: number;
+  total_commission?: number;
+  cutting_earnings?: number;
+  stitching_earnings?: number;
+  totalsByTask?: {
+    Cutting?: number;
+    Stitching?: number;
+    [key: string]: number | undefined;
+  };
+}
+
+// Helper to map backend worker to frontend format
+const mapWorker = (backendWorker: BackendWorker): Worker => {
+  const workerId = backendWorker._id || '';
+  
+  // Extract earnings from totalsByTask if available
+  const cuttingEarnings = backendWorker.cutting_earnings ?? backendWorker.totalsByTask?.Cutting ?? 0;
+  const stitchingEarnings = backendWorker.stitching_earnings ?? backendWorker.totalsByTask?.Stitching ?? 0;
+  const totalCommission = backendWorker.total_commission ?? (cuttingEarnings + stitchingEarnings);
+  
+  return {
+    id: workerId,
+    _id: backendWorker._id,
+    name: backendWorker.name || '',
+    role: backendWorker.role || '',
+    active_orders: backendWorker.active_orders ?? 0,
+    completed_orders: backendWorker.completed_orders ?? 0,
+    total_commission: totalCommission,
+    cutting_earnings: cuttingEarnings,
+    stitching_earnings: stitchingEarnings,
+  };
+};
 
 export const workerService = {
   async getAll(): Promise<Worker[]> {
-    return apiClient.get<Worker[]>('/workers');
+    const response = await apiClient.get<{ data: BackendWorker[] }>('/workers');
+    const workers = Array.isArray(response.data) ? response.data : [];
+    return workers.map(mapWorker);
   },
 
-  async getById(id: number): Promise<Worker> {
-    return apiClient.get<Worker>(`/workers/${id}`);
+  async getById(id: string): Promise<Worker> {
+    const response = await apiClient.get<{ data: BackendWorker }>(`/workers/${id}`);
+    return mapWorker(response.data);
   },
 
   async create(data: CreateWorkerData): Promise<Worker> {
-    return apiClient.post<Worker>('/workers', data);
+    const response = await apiClient.post<{ data: BackendWorker }>('/workers', data);
+    return mapWorker(response.data);
   },
 
   async update(data: UpdateWorkerData): Promise<Worker> {
     const { id, ...updateData } = data;
-    return apiClient.put<Worker>(`/workers/${id}`, updateData);
+    const response = await apiClient.put<{ data: BackendWorker }>(`/workers/${id}`, updateData);
+    return mapWorker(response.data);
   },
 
-  async delete(id: number): Promise<void> {
-    return apiClient.delete(`/workers/${id}`);
+  async delete(id: string): Promise<void> {
+    await apiClient.delete(`/workers/${id}`);
   },
 };
+
+
+
+
+
 ///
 
 /*
@@ -93,6 +145,7 @@ export const workerService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/workers/${id}`)));
   },
 };*/
+
 
 
 
