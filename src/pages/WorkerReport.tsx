@@ -81,7 +81,7 @@ export const WorkerReport: React.FC = () => {
     }
   };
 
-  const handleDeleteWorker = async (id: number) => {
+  const handleDeleteWorker = async (id: string) => {
     if (!window.confirm('Are you sure?')) return;
 
     try {
@@ -100,9 +100,10 @@ export const WorkerReport: React.FC = () => {
     w.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalCutting = workers.reduce((sum, w) => sum + (w.cutting_earnings || 0), 0);
-  const totalStitching = workers.reduce((sum, w) => sum + (w.stitching_earnings || 0), 0);
-  const totalCommission = workers.reduce((sum, w) => sum + w.total_commission, 0);
+  // Null-safe calculations with ?? 0 fallback
+  const totalCutting = workers.reduce((sum, w) => sum + (w.cutting_earnings ?? 0), 0);
+  const totalStitching = workers.reduce((sum, w) => sum + (w.stitching_earnings ?? 0), 0);
+  const totalCommission = workers.reduce((sum, w) => sum + (w.total_commission ?? 0), 0);
 
   if (isLoading) {
     return (
@@ -165,15 +166,15 @@ export const WorkerReport: React.FC = () => {
         <div className="flex gap-4">
           <div className="bg-orange-50 px-5 py-3 rounded-xl border border-orange-100 text-center">
             <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">TOTAL CUTTING</p>
-            <p className="text-xl font-bold text-orange-600">₹{totalCutting.toLocaleString()}</p>
+            <p className="text-xl font-bold text-orange-600">₹{(totalCutting ?? 0).toLocaleString()}</p>
           </div>
           <div className="bg-blue-50 px-5 py-3 rounded-xl border border-blue-100 text-center">
             <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">TOTAL STITCHING</p>
-            <p className="text-xl font-bold text-blue-600">₹{totalStitching.toLocaleString()}</p>
+            <p className="text-xl font-bold text-blue-600">₹{(totalStitching ?? 0).toLocaleString()}</p>
           </div>
           <div className="bg-purple-50 px-5 py-3 rounded-xl border border-purple-100 text-center">
             <p className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">TOTAL COMMISSION</p>
-            <p className="text-xl font-bold text-purple-600">₹{totalCommission.toLocaleString()}</p>
+            <p className="text-xl font-bold text-purple-600">₹{(totalCommission ?? 0).toLocaleString()}</p>
           </div>
         </div>
       </div>
@@ -231,11 +232,11 @@ export const WorkerReport: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-gray-500 text-sm">{worker.role}</td>
                     <td className="px-6 py-4 text-center">
-                      <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md text-xs font-bold">{worker.active_orders}</span>
+                      <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md text-xs font-bold">{worker.active_orders ?? 0}</span>
                     </td>
-                    <td className="px-6 py-4 text-right font-bold text-orange-600">₹{worker.cutting_earnings || 0}</td>
-                    <td className="px-6 py-4 text-right font-bold text-blue-600">₹{worker.stitching_earnings || 0}</td>
-                    <td className="px-6 py-4 text-right font-bold text-emerald-600">₹{worker.total_commission.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right font-bold text-orange-600">₹{(worker.cutting_earnings ?? 0).toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right font-bold text-blue-600">₹{(worker.stitching_earnings ?? 0).toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right font-bold text-emerald-600">₹{(worker.total_commission ?? 0).toLocaleString()}</td>
                     <td className="px-6 py-4 text-right flex justify-end gap-2">
                       <button 
                         onClick={() => openEditModal(worker)} 
@@ -262,3 +263,4 @@ export const WorkerReport: React.FC = () => {
     </div>
   );
 };
+
