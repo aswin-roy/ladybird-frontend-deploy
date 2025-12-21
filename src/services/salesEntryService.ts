@@ -64,6 +64,3 @@ export const salesEntryService = {
   },
 };
 
-export const createSaleEntry = (data: any) => {
-  console.log("Creating sale entry:", data);
-};
