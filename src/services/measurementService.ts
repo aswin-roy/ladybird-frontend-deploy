@@ -106,16 +106,74 @@ export const measurementService = {
 
 
 
+/*import { apiClient } from './api';
+
+export interface Measurement {
+  id: number;
+  customer_id: number;
+  customer_name: string;
+  measurement_date: string;
+  values: Record<string, string>;
+  notes?: string;
+}
+
+export interface CreateMeasurementData {
+  customer_id: number;
+  customer_name: string;
+  measurement_date?: string;
+  values: Record<string, string>;
+  notes?: string;
+}
+
+export interface UpdateMeasurementData extends Partial<CreateMeasurementData> {
+  id: number;
+}
+
+export const measurementService = {
+  async getAll(): Promise<Measurement[]> {
+    return apiClient.get<Measurement[]>('/measurements');
+  },
+
+  async getById(id: number): Promise<Measurement> {
+    return apiClient.get<Measurement>(`/measurements/${id}`);
+  },
+
+  async getByCustomer(customerId: number): Promise<Measurement[]> {
+    return apiClient.get<Measurement[]>(`/measurements/customer/${customerId}`);
+  },
+
+  async create(data: CreateMeasurementData): Promise<Measurement> {
+    return apiClient.post<Measurement>('/measurements', data);
+  },
+
+  async update(data: UpdateMeasurementData): Promise<Measurement> {
+    const { id, ...updateData } = data;
+    return apiClient.put<Measurement>(`/measurements/${id}`, updateData);
+  },
+
+  async delete(id: number): Promise<void> {
+    return apiClient.delete(`/measurements/${id}`);
+  },
+};*/
+//
+
+
+
+
 import { apiClient } from './api';
 
 // Backend shape
 export interface BackendMeasurement {
   _id: string;
-  customer_id: string;
-  customer_name?: string; // might be undefined
+  customerId: string | { _id: string, customername: string, customerphone: string }; // Populated or ID
+  // customer_name might not be there if populated.
+  customer_name?: string;
   measurement_date: string;
   values: Record<string, string>;
   notes?: string;
+  // upperBody / lowerBody are present in backend response
+  upperBody?: any;
+  lowerBody?: any;
 }
 
 // Frontend shape
@@ -173,10 +231,22 @@ const mapMeasurement = (m: BackendMeasurement): Measurement => {
   Object.entries(upper).forEach(([k, v]) => { if (v !== undefined) values[mapKey(k)] = String(v); });
   Object.entries(lower).forEach(([k, v]) => { if (v !== undefined) values[mapKey(k)] = String(v); });
 
+  // Determine customer ID and Name
+  let cId = '';
+  let cName = 'Unknown Customer';
+
+  if (typeof m.customerId === 'object' && m.customerId) {
+    cId = (m.customerId as any)._id;
+    cName = (m.customerId as any).customername || 'Unknown Customer';
+  } else {
+    cId = m.customerId as string;
+    cName = m.customer_name || 'Unknown Customer';
+  }
+
   return {
     id: m._id,
-    customer_id: m.customer_id,
-    customer_name: m.customer_name ?? 'Unknown Customer',
+    customer_id: cId,
+    customer_name: cName,
     measurement_date: m.measurement_date,
     values: values,
     notes: m.notes,
@@ -291,6 +361,15 @@ export const measurementService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/measurements/${id}`)));
   },
 };
+
+
+
+
+
+
+
+
+
 
 
 
