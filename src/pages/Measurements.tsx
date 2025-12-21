@@ -714,7 +714,7 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                                             key={c.id}
                                             onMouseDown={() => {
                                                 setCustomerName(c.name);
-                                                setCustomerId(c.id);
+                                                setCustomerId(c._id || '');
                                                 setIsCustomerDropdownOpen(false);
                                             }}
                                             className="p-3 hover:bg-purple-50 cursor-pointer text-sm"
@@ -780,11 +780,6 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
     );
 };
 //
-
-
-
-
-
 
 
 
