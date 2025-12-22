@@ -1,4 +1,4 @@
-/*import { apiClient } from './api';
+import { apiClient } from './api';
 import { Product } from '../types/types';
 
 export interface CreateProductData {
@@ -10,36 +10,81 @@ export interface CreateProductData {
 }
 
 export interface UpdateProductData extends Partial<CreateProductData> {
-  id: number;
+  id: number | string;
 }
+
+// Shape returned by backend inventory endpoints
+interface BackendInventoryItem {
+  _id: string;
+  productname: string;
+  skucode: string;
+  category: string;
+  price: number;
+  stock: number;
+}
+
+const mapInventoryItem = (item: BackendInventoryItem, index: number): Product => ({
+  id: index + 1, // UI uses id as a key; use index + 1 ensures it's truthy (not 0)
+  _id: item._id, // Preserve MongoDB _id for backend operations
+  name: item.productname,
+  sku: item.skucode,
+  category: item.category,
+  price: item.price,
+  stock: item.stock,
+});
 
 export const productService = {
   async getAll(): Promise<Product[]> {
-    return apiClient.get<Product[]>('/products');
+    const response = await apiClient.get<{ data: BackendInventoryItem[] }>('/inventory');
+    const list = Array.isArray(response.data) ? response.data : [];
+    return list.map((item, index) => mapInventoryItem(item, index));
   },
 
   async getById(id: number): Promise<Product> {
-    return apiClient.get<Product>(`/products/${id}`);
+    const response = await apiClient.get<{ data: BackendInventoryItem }>(`/inventory/${id}`);
+    return mapInventoryItem(response.data, 0);
   },
 
   async create(data: CreateProductData): Promise<Product> {
-    return apiClient.post<Product>('/products', data);
+    const payload = {
+      productname: data.name,
+      skucode: data.sku,
+      category: data.category,
+      price: data.price,
+      stock: data.stock,
+    };
+    const response = await apiClient.post<{ data: BackendInventoryItem }>('/inventory', payload);
+    return mapInventoryItem(response.data, 0);
   },
 
   async update(data: UpdateProductData): Promise<Product> {
-    const { id, ...updateData } = data;
-    return apiClient.put<Product>(`/products/${id}`, updateData);
+    const { id, name, sku, category, price, stock, ...rest } = data;
+    const payload: Partial<BackendInventoryItem> = {
+      ...(name !== undefined && { productname: name }),
+      ...(sku !== undefined && { skucode: sku }),
+      ...(category !== undefined && { category }),
+      ...(price !== undefined && { price }),
+      ...(stock !== undefined && { stock }),
+      ...rest,
+    };
+    const response = await apiClient.put<{ data: BackendInventoryItem }>(`/inventory/${id}`, payload);
+    return mapInventoryItem(response.data, 0);
   },
 
   async delete(id: number): Promise<void> {
-    return apiClient.delete(`/products/${id}`);
+    await apiClient.delete(`/inventory/${id}`);
   },
-};*/
+};
+
+
+
+
+
 
 
 
 //
-import { apiClient } from './api';
+/*import { apiClient } from './api';
 import { Product } from '../types/types';
 
 export interface CreateProductData {
@@ -115,7 +160,8 @@ export const productService = {
   async delete(id: number): Promise<void> {
     await apiClient.delete(`/inventory/${id}`);
   },
-};
+};*/
+
 
 
 
