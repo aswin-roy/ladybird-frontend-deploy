@@ -356,6 +356,7 @@ export const orderService = {
 
 
 
+
 import { apiClient } from './api';
 import { Order, WorkerAssignment } from '../types/types';
 
@@ -442,8 +443,8 @@ const mapOrder = (backendOrder: BackendOrder): Order => {
     'cutting': 'Cutting',
     'stitching': 'Stitching',
     'inprogress': 'In Progress',
-    'Ready': 'Ready',
-    'Delivered': 'Delivered'
+    'ready': 'Ready',
+    'delivered': 'Delivered'
   };
 
   // Convert MongoDB _id to a numeric id for display (use last 6 digits or hash)
@@ -531,24 +532,6 @@ export const orderService = {
     await apiClient.delete(`/orders/${orderId}`);
   },
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
