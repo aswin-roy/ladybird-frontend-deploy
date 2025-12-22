@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState, Customer } from '../types/types';
-import { InputField } from '../components/InputField';
+import { InputField, Pagination } from '../components';
 import { customerService } from '../services/customerService';
 import { Plus, Search, X, Trash2, Edit2, ShoppingCart, Ruler, Loader2 } from 'lucide-react';
 import { ApiError } from '../services/api';
@@ -15,6 +15,8 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [currentCustomer, setCurrentCustomer] = useState<Customer>({ id: 0, name: '', phone: '', orders: 0, address: '' });
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
 
     useEffect(() => {
         loadCustomers();
@@ -44,7 +46,7 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
         try {
             setIsSubmitting(true);
             setError(null);
-            
+
             if (modalMode === 'add') {
                 await customerService.create({
                     name: currentCustomer.name,
@@ -53,13 +55,13 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
                 });
             } else {
                 await customerService.update({
-                    id: currentCustomer.id,
+                    id: currentCustomer._id || currentCustomer.id,
                     name: currentCustomer.name,
                     phone: currentCustomer.phone,
                     address: currentCustomer.address,
                 });
             }
-            
+
             setIsModalOpen(false);
             setCurrentCustomer({ id: 0, name: '', phone: '', orders: 0, address: '' });
             await loadCustomers();
@@ -114,10 +116,12 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
         setIsModalOpen(true);
     };
 
-    const filteredCustomers = customers.filter(customer => 
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const filteredCustomers = customers.filter(customer =>
         customer.phone.includes(searchTerm)
     );
+
+    const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+    const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) setSelectedIds(filteredCustomers.map(c => c.id));
@@ -156,31 +160,31 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Name</label>
-                                <InputField 
-                                    placeholder="Customer Name" 
+                                <InputField
+                                    placeholder="Customer Name"
                                     value={currentCustomer.name}
-                                    onChange={(e) => setCurrentCustomer({...currentCustomer, name: e.target.value})}
+                                    onChange={(e) => setCurrentCustomer({ ...currentCustomer, name: e.target.value })}
                                 />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Phone</label>
-                                <InputField 
-                                    placeholder="Phone Number" 
+                                <InputField
+                                    placeholder="Phone Number"
                                     value={currentCustomer.phone}
-                                    onChange={(e) => setCurrentCustomer({...currentCustomer, phone: e.target.value})}
+                                    onChange={(e) => setCurrentCustomer({ ...currentCustomer, phone: e.target.value })}
                                 />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Address</label>
-                                <InputField 
-                                    placeholder="Address" 
+                                <InputField
+                                    placeholder="Address"
                                     value={currentCustomer.address || ''}
-                                    onChange={(e) => setCurrentCustomer({...currentCustomer, address: e.target.value})}
+                                    onChange={(e) => setCurrentCustomer({ ...currentCustomer, address: e.target.value })}
                                 />
                             </div>
                             <div className="pt-4 flex justify-between items-center gap-2">
                                 {modalMode === 'edit' ? (
-                                    <button 
+                                    <button
                                         type="button"
                                         onClick={() => handleDeleteCustomer(currentCustomer.id)}
                                         className="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 transition flex items-center gap-1"
@@ -189,16 +193,16 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
                                         <Trash2 size={16} /> Delete
                                     </button>
                                 ) : <div></div>}
-                                
+
                                 <div className="flex gap-2">
-                                    <button 
+                                    <button
                                         onClick={() => setIsModalOpen(false)}
                                         className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
                                         disabled={isSubmitting}
                                     >
                                         Cancel
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={handleSaveCustomer}
                                         className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition shadow-md shadow-purple-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                         disabled={isSubmitting}
@@ -221,9 +225,9 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
                         </div>
                         <div className="flex gap-2">
                             <button onClick={handleBulkDelete} className="px-3 py-1.5 bg-red-500 text-white rounded-md text-sm font-medium hover:bg-red-600 flex items-center gap-2">
-                                <Trash2 size={16}/> Delete Selected
+                                <Trash2 size={16} /> Delete Selected
                             </button>
-                            <button onClick={() => setSelectedIds([])} className="px-3 py-1.5 text-gray-500 hover:text-gray-700"><X size={18}/></button>
+                            <button onClick={() => setSelectedIds([])} className="px-3 py-1.5 text-gray-500 hover:text-gray-700"><X size={18} /></button>
                         </div>
                     </div>
                 ) : (
@@ -235,8 +239,8 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
                         <div className="flex gap-3">
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                                <InputField 
-                                    placeholder="Search customers..." 
+                                <InputField
+                                    placeholder="Search customers..."
                                     className="pl-10 w-64"
                                     value={searchTerm}
                                     onChange={(e) => {
@@ -244,7 +248,7 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
                                     }}
                                 />
                             </div>
-                            <button 
+                            <button
                                 onClick={openAddModal}
                                 className="bg-purple-600 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 hover:bg-purple-700 transition shadow-md shadow-purple-200 font-medium text-sm"
                             >
@@ -266,8 +270,8 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
                         <thead className="bg-gray-50 sticky top-0 z-10">
                             <tr>
                                 <th className="px-6 py-4 w-10">
-                                    <input 
-                                        type="checkbox" 
+                                    <input
+                                        type="checkbox"
                                         checked={filteredCustomers.length > 0 && selectedIds.length === filteredCustomers.length}
                                         onChange={(e) => handleSelectAll(e.target.checked)}
                                         className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4"
@@ -281,11 +285,11 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                            {filteredCustomers.map((customer) => (
+                            {paginatedCustomers.map((customer) => (
                                 <tr key={customer.id} className={`hover:bg-purple-50/50 transition-colors group ${selectedIds.includes(customer.id) ? 'bg-purple-50/30' : ''}`}>
                                     <td className="px-6 py-4">
-                                        <input 
-                                            type="checkbox" 
+                                        <input
+                                            type="checkbox"
                                             checked={selectedIds.includes(customer.id)}
                                             onChange={() => handleSelect(customer.id)}
                                             className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4"
@@ -308,23 +312,23 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
                                     <td className="px-6 py-4 text-gray-500 text-sm max-w-xs truncate">{customer.address || '-'}</td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-2">
-                                            <button 
+                                            <button
                                                 onClick={() => onNavigate('salesEntry')}
-                                                className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" 
+                                                className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                                 title="New Sale"
                                             >
                                                 <ShoppingCart size={18} />
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => onNavigate('measurements')}
-                                                className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" 
+                                                className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                                                 title="Measurements"
                                             >
                                                 <Ruler size={18} />
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => openEditModal(customer)}
-                                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+                                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                                 title="Edit"
                                             >
                                                 <Edit2 size={18} />
@@ -337,6 +341,7 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
                     </table>
                 )}
             </div>
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
     );
 };
