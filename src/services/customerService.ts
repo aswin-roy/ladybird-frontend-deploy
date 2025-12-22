@@ -20,18 +20,22 @@ interface BackendCustomer {
 }
 
 // Helper to map backend customer to frontend model
-const mapCustomer = (c: BackendCustomer, index: number): Customer => ({
-  id: index + 1, // Mongo uses string _id; we just need a stable numeric key for UI
-  _id: c._id, // Preserve MongoDB _id for backend operations
-  name: c.customername,
-  phone: String(c.customerphone ?? ''),
-  orders: 0, // Backend currently doesn't expose orders count
-  address: c.customeraddress ?? '',
-});
+const mapCustomer = (c: BackendCustomer, index: number): Customer => {
+  if (index === 0) console.log('Mapping customer 0:', c);
+  return {
+    id: index + 1, // Mongo uses string _id; we just need a stable numeric key for UI
+    _id: c._id, // Preserve MongoDB _id for backend operations
+    name: c.customername,
+    phone: String(c.customerphone ?? ''),
+    orders: 0, // Backend currently doesn't expose orders count
+    address: c.customeraddress ?? '',
+  };
+};
 
 export const customerService = {
   async getAll(): Promise<Customer[]> {
     const response = await apiClient.get<{ data: BackendCustomer[] }>('/customers');
+    console.log('Raw customers response:', response.data);
     const list = Array.isArray(response.data) ? response.data : [];
     return list.map(mapCustomer);
   },
@@ -270,6 +274,7 @@ export const customerService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/customers/${id}`)));
   },
 };*/
+
 
 
 
