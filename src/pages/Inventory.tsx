@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product } from '../types/types';
 import { InputField, SelectField, Pagination } from '../components';
 import { productService } from '../services/productService';
