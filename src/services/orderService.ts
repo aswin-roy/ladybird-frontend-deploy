@@ -444,7 +444,9 @@ const mapOrder = (backendOrder: BackendOrder): Order => {
     'stitching': 'Stitching',
     'inprogress': 'In Progress',
     'ready': 'Ready',
-    'delivered': 'Delivered'
+    'Ready': 'Ready',
+    'delivered': 'Delivered',
+    'Delivered': 'Delivered'
   };
 
   // Convert MongoDB _id to a numeric id for display (use last 6 digits or hash)
@@ -532,6 +534,23 @@ export const orderService = {
     await apiClient.delete(`/orders/${orderId}`);
   },
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
