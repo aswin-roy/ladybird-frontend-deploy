@@ -8,7 +8,7 @@ export interface CreateCustomerData {
 }
 
 export interface UpdateCustomerData extends Partial<CreateCustomerData> {
-  id: number;
+  id: number | string;
 }
 
 // Shape returned by backend customer endpoints
@@ -50,8 +50,8 @@ export const customerService = {
       // If backend doesn't support query param, fall back to client-side filtering
       const allCustomers = await this.getAll();
       const queryLower = query.toLowerCase();
-      return allCustomers.filter(c => 
-        c.name.toLowerCase().includes(queryLower) || 
+      return allCustomers.filter(c =>
+        c.name.toLowerCase().includes(queryLower) ||
         c.phone.includes(query)
       );
     }
@@ -89,7 +89,6 @@ export const customerService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/customers/${id}`)));
   },
 };
-
 // final
 
 /*import { apiClient } from './api';
@@ -170,6 +169,7 @@ export const customerService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/customers/${id}`)));
   },
 };*/
+
 
 
 
