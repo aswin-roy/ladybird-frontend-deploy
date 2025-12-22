@@ -111,6 +111,7 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
     };
 
     const openEditModal = (customer: Customer) => {
+        console.log('Opening edit modal for customer:', customer);
         setModalMode('edit');
         setCurrentCustomer({ ...customer });
         setIsModalOpen(true);
