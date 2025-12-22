@@ -1,3 +1,44 @@
+/*import { apiClient } from './api';
+import { Product } from '../types/types';
+
+export interface CreateProductData {
+  name: string;
+  sku: string;
+  category: string;
+  price: number;
+  stock: number;
+}
+
+export interface UpdateProductData extends Partial<CreateProductData> {
+  id: number;
+}
+
+export const productService = {
+  async getAll(): Promise<Product[]> {
+    return apiClient.get<Product[]>('/products');
+  },
+
+  async getById(id: number): Promise<Product> {
+    return apiClient.get<Product>(`/products/${id}`);
+  },
+
+  async create(data: CreateProductData): Promise<Product> {
+    return apiClient.post<Product>('/products', data);
+  },
+
+  async update(data: UpdateProductData): Promise<Product> {
+    const { id, ...updateData } = data;
+    return apiClient.put<Product>(`/products/${id}`, updateData);
+  },
+
+  async delete(id: number): Promise<void> {
+    return apiClient.delete(`/products/${id}`);
+  },
+};*/
+
+
+
+//
 import { apiClient } from './api';
 import { Product } from '../types/types';
 
@@ -71,10 +112,13 @@ export const productService = {
     return mapInventoryItem(response.data, 0);
   },
 
-  async delete(id: number): Promise<void> {
+  async delete(id: string | number): Promise<void> {
     await apiClient.delete(`/inventory/${id}`);
   },
 };
+
+
+
 
 
 
@@ -161,6 +205,7 @@ export const productService = {
     await apiClient.delete(`/inventory/${id}`);
   },
 };*/
+
 
 
 
