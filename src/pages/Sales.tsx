@@ -95,7 +95,7 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
     };
 
     const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-    const tax = subtotal * 0.05; // 5% tax
+    const tax = 0; // Tax removed as per request
     const total = subtotal + tax;
 
     useEffect(() => {
@@ -273,8 +273,8 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
                 </div>
             </div>
 
-            <div className="w-full lg:w-[28rem] bg-gray-50 rounded-2xl border border-gray-200 flex flex-col h-full flex-shrink-0">
-                <div className="p-6 border-b border-gray-200">
+            <div className="w-full lg:w-[28rem] bg-white rounded-2xl border border-purple-100 shadow-2xl flex flex-col h-full flex-shrink-0">
+                <div className="p-6 border-b border-gray-100">
                     <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
                         <UserCheck size={20} className="text-purple-600" /> Bill To
                     </h3>
@@ -313,7 +313,7 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0 bg-white">
                     {cart.length === 0 ? (
                         <div className="h-full flex flex-col items-center justify-center text-gray-400 px-4">
                             <ShoppingCart size={48} className="mb-4 opacity-20" />
@@ -356,14 +356,14 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
                     )}
                 </div>
 
-                <div className="p-6 bg-gray-50 border-t-2 border-dashed border-gray-200 rounded-b-2xl">
+                <div className="p-6 bg-purple-50 border-t border-purple-100 rounded-b-2xl shadow-inner">
                     <div className="space-y-2 mb-4">
                         <div className="flex justify-between text-sm text-gray-600">
                             <span>Subtotal</span>
                             <span className="font-medium">₹{subtotal.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm text-gray-600">
-                            <span>Tax (5%)</span>
+                            <span>Tax (0%)</span>
                             <span className="font-medium">₹{tax.toFixed(2)}</span>
                         </div>
                         <div className="border-t border-gray-200 pt-2 mt-2 flex justify-between text-xl font-bold text-gray-900">
