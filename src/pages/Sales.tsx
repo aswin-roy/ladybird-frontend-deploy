@@ -246,9 +246,9 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
                             onClick={() => addToCart(p)}
                             className="border border-gray-200 rounded-xl p-4 hover:shadow-lg cursor-pointer transition-all hover:border-purple-300 bg-gray-50 group flex flex-col relative"
                         >
-                            {p.stock < 50 && (
+                            {p.stock === 0 && (
                                 <div className="absolute top-2 right-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-bold">
-                                    Low Stock
+                                    Out of Stock
                                 </div>
                             )}
                             <div className="h-24 bg-gray-50 rounded-lg mb-3 flex items-center justify-center text-gray-400 group-hover:text-purple-500 transition-colors">
