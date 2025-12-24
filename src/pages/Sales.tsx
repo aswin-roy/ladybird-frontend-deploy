@@ -274,8 +274,8 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
             </div>
 
             <div className="w-full lg:w-[32rem] bg-white rounded-2xl border border-purple-100 shadow-2xl flex flex-col h-full flex-shrink-0">
-                <div className="p-6 border-b border-gray-100">
-                    <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
+                <div className="p-4 border-b border-gray-100">
+                    <h3 className="font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
                         <UserCheck size={20} className="text-purple-600" /> Bill To
                     </h3>
                     <div className="relative">
@@ -356,8 +356,8 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
                     )}
                 </div>
 
-                <div className="p-6 bg-purple-50 border-t border-purple-100 rounded-b-2xl shadow-inner">
-                    <div className="space-y-2 mb-4">
+                <div className="p-4 bg-purple-50 border-t border-purple-100 rounded-b-2xl shadow-inner">
+                    <div className="space-y-1 mb-3">
                         <div className="flex justify-between text-sm text-gray-600">
                             <span>Subtotal</span>
                             <span className="font-medium">₹{subtotal.toFixed(2)}</span>
@@ -366,14 +366,14 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
                             <span>Tax (0%)</span>
                             <span className="font-medium">₹{tax.toFixed(2)}</span>
                         </div>
-                        <div className="border-t border-gray-200 pt-2 mt-2 flex justify-between text-xl font-bold text-gray-900">
+                        <div className="border-t border-gray-200 pt-2 mt-1 flex justify-between text-xl font-bold text-gray-900">
                             <span>Total</span>
                             <span className="text-purple-600">₹{total.toFixed(2)}</span>
                         </div>
                     </div>
 
-                    <div className="mb-4">
-                        <p className="text-xs font-bold text-gray-500 uppercase mb-2">Paid Amount</p>
+                    <div className="mb-3">
+                        <p className="text-xs font-bold text-gray-500 uppercase mb-1">Paid Amount</p>
                         <InputField
                             type="number"
                             value={paidAmount}
@@ -385,14 +385,14 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
                             placeholder="Enter paid amount"
                         />
                     </div>
-                    <div className="mb-4">
-                        <p className="text-xs font-bold text-gray-500 uppercase mb-2">Payment Mode</p>
+                    <div className="mb-3">
+                        <p className="text-xs font-bold text-gray-500 uppercase mb-1">Payment Mode</p>
                         <div className="grid grid-cols-3 gap-2">
                             {[{ name: 'Cash', icon: Wallet }, { name: 'Card', icon: CardIcon }, { name: 'UPI', icon: Smartphone }].map((mode) => (
                                 <button
                                     key={mode.name}
                                     onClick={() => setPaymentMode(mode.name as any)}
-                                    className={`py-2 rounded-lg text-sm font-bold border-2 transition-all flex items-center justify-center gap-2 ${paymentMode === mode.name
+                                    className={`py-1.5 rounded-lg text-sm font-bold border-2 transition-all flex items-center justify-center gap-2 ${paymentMode === mode.name
                                         ? 'bg-purple-50 text-purple-700 border-purple-600'
                                         : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-400'
                                         }`}
@@ -405,7 +405,7 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
                     <button
                         onClick={handleCheckout}
                         disabled={cart.length === 0 || isSubmitting}
-                        className="w-full bg-purple-600 text-white py-3.5 rounded-xl font-bold hover:bg-purple-700 shadow-lg shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg"
+                        className="w-full bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700 shadow-lg shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg"
                     >
                         {isSubmitting && <Loader2 className="animate-spin" size={20} />}
                         Pay Now
@@ -415,7 +415,6 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
         </div>
     );
 };
-
 //////
 /*import React, { useState, useEffect } from 'react';
 import { ViewState, Customer, Product } from '../types/types';
