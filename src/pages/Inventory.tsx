@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import React, { useState, useEffect } from 'react';
+
 import { Product } from '../types/types';
 import { InputField, SelectField, Pagination } from '../components';
 import { productService } from '../services/productService';
@@ -81,7 +81,7 @@ export const Inventory: React.FC = () => {
     }
   };
 
-  const handleDeleteProduct = async (id: number) => {
+  const handleDeleteProduct = async (id: string) => {
     if (!window.confirm('Are you sure?')) return;
 
     try {
@@ -285,7 +285,13 @@ export const Inventory: React.FC = () => {
                         <Edit2 size={16} />
                       </button>
                       <button
-                        onClick={() => handleDeleteProduct(product.id)}
+                        onClick={() => {
+                          if (product._id) {
+                            handleDeleteProduct(product._id);
+                          } else {
+                            alert('Cannot delete: Missing product ID');
+                          }
+                        }}
                         className="text-red-400 hover:text-red-600 bg-red-50 p-2 rounded-lg hover:bg-red-100 transition-colors"
                         title="Delete"
                       >
@@ -307,7 +313,6 @@ export const Inventory: React.FC = () => {
     </div>
   );
 };
-
 
 ///////
 /*import React, { useState, useEffect } from 'react';
