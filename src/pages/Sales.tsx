@@ -273,10 +273,10 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
                 </div>
             </div>
 
-            <div className="w-full lg:w-[28rem] bg-white rounded-2xl border-2 border-purple-600 shadow-xl flex flex-col h-full flex-shrink-0">
-                <div className="p-6 border-b border-purple-600 bg-purple-600 rounded-t-xl">
-                    <h3 className="font-bold text-lg text-white mb-4 flex items-center gap-2">
-                        <UserCheck size={20} className="text-white" /> Bill To
+            <div className="w-full lg:w-[28rem] bg-white rounded-2xl border border-purple-100 shadow-2xl flex flex-col h-full flex-shrink-0">
+                <div className="p-6 border-b border-gray-100">
+                    <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
+                        <UserCheck size={20} className="text-purple-600" /> Bill To
                     </h3>
                     <div className="relative">
                         <InputField
@@ -356,7 +356,7 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
                     )}
                 </div>
 
-                <div className="p-6 bg-purple-50 border-t-2 border-purple-600 rounded-b-2xl shadow-inner">
+                <div className="p-6 bg-purple-50 border-t border-purple-100 rounded-b-2xl shadow-inner">
                     <div className="space-y-2 mb-4">
                         <div className="flex justify-between text-sm text-gray-600">
                             <span>Subtotal</span>
@@ -415,7 +415,6 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
         </div>
     );
 };
-
 
 //////
 /*import React, { useState, useEffect } from 'react';
