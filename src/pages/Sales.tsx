@@ -273,7 +273,7 @@ export const Sales: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onN
                 </div>
             </div>
 
-            <div className="w-full lg:w-[28rem] bg-white rounded-2xl border border-purple-100 shadow-2xl flex flex-col h-full flex-shrink-0">
+            <div className="w-full lg:w-[32rem] bg-white rounded-2xl border border-purple-100 shadow-2xl flex flex-col h-full flex-shrink-0">
                 <div className="p-6 border-b border-gray-100">
                     <h3 className="font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
                         <UserCheck size={20} className="text-purple-600" /> Bill To
