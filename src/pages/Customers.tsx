@@ -27,7 +27,8 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
             setIsLoading(true);
             setError(null);
             const data = await customerService.getAll();
-            setCustomers(data);
+           // setCustomers(data);
+            setCustomers(data.sort((a, b) => b.id - a.id));
         } catch (err) {
             const apiError = err as ApiError;
             setError(apiError.message || 'Failed to load customers');
