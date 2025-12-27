@@ -136,7 +136,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             required
             disabled={isLoading}
           />
-         */ <div className="flex justify-end mt-2">
+          <div className="flex justify-end mt-2">
             <button 
               type="button" 
               className="text-sm text-purple-600 hover:underline" 
@@ -146,7 +146,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               Forgot password?
             </button>
           </div>
-        </div>/*
+        </div>
         
         <button 
           type="submit" 
