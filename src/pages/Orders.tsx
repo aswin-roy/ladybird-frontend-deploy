@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Order, WorkerAssignment, Customer } from '../types/types';
 import { InputField, SelectField, Pagination } from '../components';
@@ -209,9 +208,10 @@ export const Orders: React.FC = () => {
     };
 
     const filteredOrders = orders.filter(order =>
-        order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.id.toString().includes(searchTerm) ||
-        order.item.toLowerCase().includes(searchTerm)
+        order.status !== 'Delivered' && // Exclude delivered orders from the default view
+        (order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            order.id.toString().includes(searchTerm) ||
+            order.item.toLowerCase().includes(searchTerm))
     );
 
     const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -531,11 +531,11 @@ export const Orders: React.FC = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
-                                                order.status === 'Ready' ? 'bg-green-100 text-green-700 border border-green-200' :
-                                                    order.status === 'Cutting' ? 'bg-orange-100 text-orange-700 border border-orange-200' :
-                                                        order.status === 'Stitching' ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' :
-                                                            order.status === 'Delivered' ? 'bg-gray-100 text-gray-600 border border-gray-200' :
-                                                                'bg-blue-100 text-blue-700 border border-blue-200'
+                                            order.status === 'Ready' ? 'bg-green-100 text-green-700 border border-green-200' :
+                                                order.status === 'Cutting' ? 'bg-orange-100 text-orange-700 border border-orange-200' :
+                                                    order.status === 'Stitching' ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' :
+                                                        order.status === 'Delivered' ? 'bg-gray-100 text-gray-600 border border-gray-200' :
+                                                            'bg-blue-100 text-blue-700 border border-blue-200'
                                             }`}>
                                             {order.status}
                                         </span>
