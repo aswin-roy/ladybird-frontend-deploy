@@ -1,5 +1,4 @@
 import { apiClient } from './api';
-import { apiClient } from './api';
 import { Worker } from '../types/types';
 
 export interface CreateWorkerData {
@@ -18,7 +17,6 @@ interface BackendWorker {
   role: string;
   isActive?: boolean;
   createdAt?: string;
-  // Optional report fields (from worker-reports endpoint)
   active_orders?: number;
   completed_orders?: number;
   total_commission?: number;
@@ -35,7 +33,6 @@ interface BackendWorker {
 const mapWorker = (backendWorker: BackendWorker): Worker => {
   const workerId = backendWorker._id || '';
 
-  // Extract earnings from totalsByTask if available
   const cuttingEarnings = backendWorker.cutting_earnings ?? backendWorker.totalsByTask?.Cutting ?? 0;
   const stitchingEarnings = backendWorker.stitching_earnings ?? backendWorker.totalsByTask?.Stitching ?? 0;
   const totalCommission = backendWorker.total_commission ?? (cuttingEarnings + stitchingEarnings);
@@ -54,11 +51,14 @@ const mapWorker = (backendWorker: BackendWorker): Worker => {
 };
 
 export const workerService = {
-  async getAll(inputParams?: { type?: string; date?: string; month?: number; year?: number; startDate?: string; endDate?: string }): Promise<Worker[]> {
-    // Fetch from worker-reports to get commission data
-    // The endpoint returns { workers: [...], totalsByTask: {...}, totalCommission: ... } directly
-
-    // Construct query string
+  async getAll(inputParams?: {
+    type?: string;
+    date?: string;
+    month?: number;
+    year?: number;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<Worker[]> {
     const params = new URLSearchParams();
     if (inputParams) {
       if (inputParams.type) params.append('type', inputParams.type);
@@ -72,25 +72,25 @@ export const workerService = {
     const queryString = params.toString() ? `?${params.toString()}` : '';
     const response = await apiClient.get<any>(`/worker-reports${queryString}`);
 
-    // Check if response has workers array directly
     const workersList = response.workers || (response.data && response.data.workers) || [];
 
-    if (!Array.isArray(workersList)) {
-      return [];
-    }
+    if (!Array.isArray(workersList)) return [];
 
     return workersList.map((item: any) => {
-      const w = item.worker;
+      // Safely handle either item.worker or item itself
+      const w = item.worker || item || {};
+      const workerId = w.id || w._id || '';
+
       return {
-        id: w.id || w._id,
-        _id: w.id || w._id,
+        id: workerId,
+        _id: workerId,
         name: w.name || '',
         role: w.role || '',
-        active_orders: 0, // Not provided by this endpoint currently
-        completed_orders: 0,
-        total_commission: item.totalCommission || 0,
-        cutting_earnings: item.totalsByTask?.Cutting || 0,
-        stitching_earnings: item.totalsByTask?.Stitching || 0,
+        active_orders: w.active_orders ?? 0,
+        completed_orders: w.completed_orders ?? 0,
+        total_commission: item.totalCommission ?? (w.cutting_earnings ?? 0) + (w.stitching_earnings ?? 0),
+        cutting_earnings: item.totalsByTask?.Cutting ?? w.cutting_earnings ?? 0,
+        stitching_earnings: item.totalsByTask?.Stitching ?? w.stitching_earnings ?? 0,
       };
     });
   },
@@ -334,6 +334,7 @@ export const workerService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/workers/${id}`)));
   },
 };*/
+
 
 
 
