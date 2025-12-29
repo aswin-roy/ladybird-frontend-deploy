@@ -1,4 +1,4 @@
-/*import { apiClient } from './api';
+import { apiClient } from './api';
 import { Bill } from '../types/types';
 
 export interface CreateBillData {
@@ -16,15 +16,17 @@ export interface CreateBillData {
 }
 
 export interface AddPaymentData {
-  bill_id: number;
+  bill_id: string;
   amount: number;
+  totalPaid: number;
   paymentMode: Bill['paymentMode'];
   reference_number?: string;
 }
 
 export const billService = {
   async getAll(): Promise<Bill[]> {
-    return apiClient.get<Bill[]>('/bills');
+    const response = await apiClient.get<any>('/api/sales-report');
+    return response.data || [];
   },
 
   async getById(id: number): Promise<Bill> {
@@ -40,15 +42,18 @@ export const billService = {
   },
 
   async addPayment(data: AddPaymentData): Promise<Bill> {
-    return apiClient.post<Bill>(`/bills/${data.bill_id}/payment`, {
-      amount: data.amount,
-      payment_mode: data.paymentMode,
-      reference_number: data.reference_number,
+    return apiClient.put<Bill>(`/salesentries/${data.bill_id}`, {
+      paidAmount: data.totalPaid,
+      // We don't change payment mode on partial payment usually, but if needed:
+      // paymentMethod: data.paymentMode 
     });
   },
-};
-*/
+  async getInvoiceForPrint(id: string): Promise<{ data: import('../types/types').InvoiceDetails }> {
+    return apiClient.get<{ data: import('../types/types').InvoiceDetails }>(`/invoice-print/${id}`);
+  },
 
+
+/*
 
 import { apiClient } from './api';
 import { Bill } from '../types/types';
@@ -101,6 +106,7 @@ export const billService = {
     });
   },
 };
+*/
 
 
 
