@@ -1,5 +1,8 @@
+
+
+
 import { apiClient } from './api';
-import { Bill } from '../types/types';
+import { Bill, InvoiceDetails } from '../types/types';
 
 export interface CreateBillData {
   customer: string;
@@ -48,9 +51,19 @@ export const billService = {
       // paymentMethod: data.paymentMode 
     });
   },
-  async getInvoiceForPrint(id: string): Promise<{ data: import('../types/types').InvoiceDetails }> {
-    return apiClient.get<{ data: import('../types/types').InvoiceDetails }>(`/invoice-print/${id}`);
+  async getInvoiceForPrint(id: string): Promise<{ data: InvoiceDetails }> {
+    return apiClient.get<{ data: InvoiceDetails }>(`/invoice-print/${id}`);
   },
+};
+
+
+
+
+
+
+
+
+
 
 
 /*
@@ -107,6 +120,7 @@ export const billService = {
   },
 };
 */
+
 
 
 
