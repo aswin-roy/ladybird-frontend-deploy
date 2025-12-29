@@ -1,6 +1,3 @@
-
-
-
 import { apiClient } from './api';
 import { Bill, InvoiceDetails } from '../types/types';
 
@@ -52,9 +49,17 @@ export const billService = {
     });
   },
   async getInvoiceForPrint(id: string): Promise<{ data: InvoiceDetails }> {
-    return apiClient.get<{ data: InvoiceDetails }>(`/invoice-print/${id}`);
+    return apiClient.get<{ data: InvoiceDetails }>(`/api/invoice-print/${id}`);
   },
 };
+
+
+
+
+
+
+
+
 
 
 
@@ -120,6 +125,7 @@ export const billService = {
   },
 };
 */
+
 
 
 
