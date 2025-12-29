@@ -357,6 +357,7 @@ export const orderService = {
 
 
 
+
 import { apiClient } from './api';
 import { Order, WorkerAssignment } from '../types/types';
 
@@ -407,6 +408,7 @@ export interface UpdateOrderData {
     worker: string;
     task: 'Cutting' | 'Stitching';
     commission: number;
+    date?: string;
   }>;
 }
 
@@ -534,10 +536,6 @@ export const orderService = {
     await apiClient.delete(`/orders/${orderId}`);
   },
 };
-
-
-
-
 
 
 
