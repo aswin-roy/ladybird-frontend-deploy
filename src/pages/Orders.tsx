@@ -757,7 +757,7 @@ export const Orders: React.FC = () => {
         if (editingOrder) {
             setEditingOrder({
                 ...editingOrder,
-                workers: [...editingOrder.workers, { name: '', task: 'Stitching', commission: 0 }]
+                workers: [...editingOrder.workers, { name: '', task: 'Stitching', commission: 0, date: new Date().toISOString().split('T')[0] }]
             });
         }
     };
@@ -1119,3 +1119,6 @@ export const Orders: React.FC = () => {
         </div>
     );
 };
+
+
+
