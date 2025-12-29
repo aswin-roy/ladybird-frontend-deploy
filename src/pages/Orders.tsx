@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Order, WorkerAssignment, Customer } from '../types/types';
 import { InputField, SelectField, Pagination } from '../components';
@@ -136,6 +137,16 @@ export const Orders: React.FC = () => {
         const timeoutId = setTimeout(searchCustomers, 300);
         return () => clearTimeout(timeoutId);
     }, [customerSearchTerm, editingOrder, handleSelectCustomer]);
+
+    const handleKeyDown = (e: React.KeyboardEvent, nextId: string) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const nextInput = document.getElementById(nextId);
+            if (nextInput) {
+                nextInput.focus();
+            }
+        }
+    };
 
     const handleUpdateOrder = async () => {
         if (!editingOrder) return;
@@ -311,10 +322,12 @@ export const Orders: React.FC = () => {
                                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Customer</label>
                                     <div className="relative">
                                         <InputField
+                                            id="order-customer-search"
                                             value={customerSearchTerm}
                                             onChange={(e) => handleCustomerSearchChange(e.target.value)}
                                             placeholder="Search by customer name or phone..."
                                             disabled={isSubmitting}
+                                            onKeyDown={(e) => handleKeyDown(e, 'order-item')}
                                             onFocus={() => {
                                                 if (customerSuggestions.length > 0) {
                                                     setShowSuggestions(true);
@@ -363,10 +376,12 @@ export const Orders: React.FC = () => {
                                 <div className="col-span-2">
                                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Item</label>
                                     <InputField
+                                        id="order-item"
                                         value={editingOrder.item}
                                         onChange={(e) => setEditingOrder({ ...editingOrder, item: e.target.value })}
                                         placeholder="e.g. Shirt, Suit"
                                         disabled={isSubmitting}
+                                        onKeyDown={(e) => handleKeyDown(e, 'order-delivery')}
                                     />
                                 </div>
                             </div>
@@ -443,10 +458,17 @@ export const Orders: React.FC = () => {
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Delivery Date</label>
                                     <InputField
+                                        id="order-delivery"
                                         type="date"
                                         value={editingOrder.delivery_date || ''}
                                         onChange={(e) => setEditingOrder({ ...editingOrder, delivery_date: e.target.value })}
                                         disabled={isSubmitting}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                handleUpdateOrder();
+                                            }
+                                        }}
                                     />
                                 </div>
                             </div>
