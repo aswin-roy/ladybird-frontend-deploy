@@ -369,7 +369,7 @@ import React, { useState, useEffect } from 'react';
 import { Worker } from '../types/types';
 import { InputField } from '../components/InputField';
 import { workerService } from '../services/workerService';
-import { Search, Plus, Edit2, Trash2, Loader2, Filter } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Loader2, Filter, Calendar } from 'lucide-react';
 import { ApiError } from '../services/api';
 
 export const WorkerReport: React.FC = () => {
@@ -400,18 +400,21 @@ export const WorkerReport: React.FC = () => {
       setError(null);
 
       const params: any = { type: filterType };
-      if (filterType === 'day') params.date = selectedDate;
-      else if (filterType === 'month') {
+
+      if (filterType === 'day') {
+        params.date = selectedDate;
+      } else if (filterType === 'month') {
         params.month = parseInt(selectedMonth);
         params.year = parseInt(selectedYear);
-      } else if (filterType === 'year') params.year = parseInt(selectedYear);
-      else if (filterType === 'custom' && startDate && endDate) {
+      } else if (filterType === 'year') {
+        params.year = parseInt(selectedYear);
+      } else if (filterType === 'custom' && startDate && endDate) {
         params.startDate = startDate;
         params.endDate = endDate;
       }
 
       const data = await workerService.getAll(params);
-      setWorkers(data || []); // fallback empty array
+      setWorkers(data);
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message || 'Failed to load workers');
@@ -451,8 +454,8 @@ export const WorkerReport: React.FC = () => {
       } else if (currentWorker.id) {
         await workerService.update({
           id: currentWorker.id,
-          name: currentWorker.name!,
-          role: currentWorker.role!,
+          name: currentWorker.name,
+          role: currentWorker.role,
         });
       }
 
@@ -483,21 +486,25 @@ export const WorkerReport: React.FC = () => {
   };
 
   const filteredWorkers = workers.filter(w =>
-    (w.name ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (w.role ?? '').toLowerCase().includes(searchTerm.toLowerCase())
+    w.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    w.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Null-safe calculations with ?? 0 fallback
   const totalCutting = workers.reduce((sum, w) => sum + (w.cutting_earnings ?? 0), 0);
   const totalStitching = workers.reduce((sum, w) => sum + (w.stitching_earnings ?? 0), 0);
   const totalCommission = workers.reduce((sum, w) => sum + (w.total_commission ?? 0), 0);
 
+  // Generate year options (current year back 5 years)
   const currentY = new Date().getFullYear();
   const yearOptions = Array.from({ length: 6 }, (_, i) => currentY - i);
 
   return (
     <div className="space-y-6 h-[calc(100vh-8rem)] flex flex-col">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">{error}</div>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
       )}
 
       {isModalOpen && (
@@ -545,27 +552,26 @@ export const WorkerReport: React.FC = () => {
         <div className="flex gap-4">
           <div className="bg-orange-50 px-5 py-3 rounded-xl border border-orange-100 text-center">
             <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">TOTAL CUTTING</p>
-            <p className="text-xl font-bold text-orange-600">₹{totalCutting.toLocaleString()}</p>
+            <p className="text-xl font-bold text-orange-600">₹{(totalCutting ?? 0).toLocaleString()}</p>
           </div>
           <div className="bg-blue-50 px-5 py-3 rounded-xl border border-blue-100 text-center">
             <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">TOTAL STITCHING</p>
-            <p className="text-xl font-bold text-blue-600">₹{totalStitching.toLocaleString()}</p>
+            <p className="text-xl font-bold text-blue-600">₹{(totalStitching ?? 0).toLocaleString()}</p>
           </div>
           <div className="bg-purple-50 px-5 py-3 rounded-xl border border-purple-100 text-center">
             <p className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">TOTAL COMMISSION</p>
-            <p className="text-xl font-bold text-purple-600">₹{totalCommission.toLocaleString()}</p>
+            <p className="text-xl font-bold text-purple-600">₹{(totalCommission ?? 0).toLocaleString()}</p>
           </div>
         </div>
       </div>
 
-      {/* Filters */}
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-wrap gap-4 items-center">
         <div className="flex items-center gap-2">
           <Filter size={18} className="text-gray-400" />
           <span className="text-sm font-medium text-gray-700">Filter By:</span>
           <select
             value={filterType}
-            onChange={e => setFilterType(e.target.value)}
+            onChange={(e) => setFilterType(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
           >
             <option value="month">Month</option>
@@ -579,7 +585,7 @@ export const WorkerReport: React.FC = () => {
           <div className="flex gap-2">
             <select
               value={selectedMonth}
-              onChange={e => setSelectedMonth(e.target.value)}
+              onChange={(e) => setSelectedMonth(e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
             >
               {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
@@ -588,7 +594,7 @@ export const WorkerReport: React.FC = () => {
             </select>
             <select
               value={selectedYear}
-              onChange={e => setSelectedYear(e.target.value)}
+              onChange={(e) => setSelectedYear(e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
             >
               {yearOptions.map(y => (
@@ -601,7 +607,7 @@ export const WorkerReport: React.FC = () => {
         {filterType === 'year' && (
           <select
             value={selectedYear}
-            onChange={e => setSelectedYear(e.target.value)}
+            onChange={(e) => setSelectedYear(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
           >
             {yearOptions.map(y => (
@@ -614,7 +620,7 @@ export const WorkerReport: React.FC = () => {
           <input
             type="date"
             value={selectedDate}
-            onChange={e => setSelectedDate(e.target.value)}
+            onChange={(e) => setSelectedDate(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
           />
         )}
@@ -624,7 +630,7 @@ export const WorkerReport: React.FC = () => {
             <input
               type="date"
               value={startDate}
-              onChange={e => setStartDate(e.target.value)}
+              onChange={(e) => setStartDate(e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
               placeholder="Start Date"
             />
@@ -632,7 +638,7 @@ export const WorkerReport: React.FC = () => {
             <input
               type="date"
               value={endDate}
-              onChange={e => setEndDate(e.target.value)}
+              onChange={(e) => setEndDate(e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
               placeholder="End Date"
             />
@@ -640,7 +646,6 @@ export const WorkerReport: React.FC = () => {
         )}
       </div>
 
-      {/* Table */}
       <div className="bg-gray-50 rounded-2xl shadow-sm border border-gray-200 flex-1 flex flex-col overflow-hidden">
         <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
           <div className="relative">
@@ -649,7 +654,7 @@ export const WorkerReport: React.FC = () => {
               placeholder="Search workers..."
               className="pl-10 w-64"
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <div className="flex gap-3">
@@ -682,17 +687,17 @@ export const WorkerReport: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filteredWorkers.map((worker, index) => (
-                  <tr key={worker.id || index} className="hover:bg-gray-50 transition-colors">
+                {filteredWorkers.map(worker => (
+                  <tr key={worker.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 mr-3">
-                          {(worker.name ?? '-').charAt(0)}
+                          {worker.name.charAt(0)}
                         </div>
-                        <span className="font-bold text-gray-900">{worker.name ?? '-'}</span>
+                        <span className="font-bold text-gray-900">{worker.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-500 text-sm">{worker.role ?? '-'}</td>
+                    <td className="px-6 py-4 text-gray-500 text-sm">{worker.role}</td>
                     <td className="px-6 py-4 text-center">
                       <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md text-xs font-bold">{worker.active_orders ?? 0}</span>
                     </td>
@@ -708,7 +713,7 @@ export const WorkerReport: React.FC = () => {
                         <Edit2 size={16} />
                       </button>
                       <button
-                        onClick={() => handleDeleteWorker(worker.id!)}
+                        onClick={() => handleDeleteWorker(worker.id)}
                         className="text-gray-400 hover:text-red-600"
                         title="Delete"
                       >
@@ -725,6 +730,3 @@ export const WorkerReport: React.FC = () => {
     </div>
   );
 };
-
-
-
