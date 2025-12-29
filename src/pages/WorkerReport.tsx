@@ -391,11 +391,13 @@ export const WorkerReport: React.FC = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  // Generate year options (current year back 5 years)
   const currentY = new Date().getFullYear();
   const yearOptions = Array.from({ length: 6 }, (_, i) => currentY - i);
 
   useEffect(() => {
     loadWorkers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterType, selectedDate, selectedMonth, selectedYear, startDate, endDate]);
 
   const loadWorkers = async () => {
@@ -404,35 +406,28 @@ export const WorkerReport: React.FC = () => {
       setError(null);
 
       const params: any = { type: filterType };
+      if (filterType === 'day') params.date = selectedDate;
+      else if (filterType === 'month') { params.month = parseInt(selectedMonth); params.year = parseInt(selectedYear); }
+      else if (filterType === 'year') params.year = parseInt(selectedYear);
+      else if (filterType === 'custom' && startDate && endDate) { params.startDate = startDate; params.endDate = endDate; }
 
-      if (filterType === 'day') {
-        params.date = selectedDate;
-      } else if (filterType === 'month') {
-        params.month = parseInt(selectedMonth);
-        params.year = parseInt(selectedYear);
-      } else if (filterType === 'year') {
-        params.year = parseInt(selectedYear);
-      } else if (filterType === 'custom' && startDate && endDate) {
-        params.startDate = startDate;
-        params.endDate = endDate;
-      }
-
-      // Backend call
       const data = await workerService.getAll(params);
 
-      // Map backend response to frontend format
-      const mappedWorkers = data.workers.map((w: any) => ({
+      console.log('Backend response:', data);
+
+      const backendWorkers = data?.workers ?? [];
+
+      const mappedWorkers = backendWorkers.map((w: any) => ({
         id: w.worker.id,
         name: w.worker.name,
         role: w.worker.role,
-        cutting_earnings: w.totalsByTask.cutting ?? 0,
-        stitching_earnings: w.totalsByTask.stitching ?? 0,
+        cutting_earnings: w.totalsByTask?.cutting ?? 0,
+        stitching_earnings: w.totalsByTask?.stitching ?? 0,
         total_commission: w.totalCommission ?? 0,
         active_orders: w.active_orders ?? 0
       }));
 
       setWorkers(mappedWorkers);
-
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message || 'Failed to load workers');
@@ -451,9 +446,17 @@ export const WorkerReport: React.FC = () => {
   const totalStitching = workers.reduce((sum, w) => sum + (w.stitching_earnings ?? 0), 0);
   const totalCommission = workers.reduce((sum, w) => sum + (w.total_commission ?? 0), 0);
 
-  // Modal handlers (add/edit)
-  const openAddModal = () => { setModalMode('add'); setCurrentWorker({ name: '', role: '' }); setIsModalOpen(true); };
-  const openEditModal = (worker: Worker) => { setModalMode('edit'); setCurrentWorker(worker); setIsModalOpen(true); };
+  const openAddModal = () => {
+    setModalMode('add');
+    setCurrentWorker({ name: '', role: '' });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (worker: Worker) => {
+    setModalMode('edit');
+    setCurrentWorker(worker);
+    setIsModalOpen(true);
+  };
 
   const handleSaveWorker = async () => {
     if (!currentWorker.name || !currentWorker.role) {
@@ -463,11 +466,13 @@ export const WorkerReport: React.FC = () => {
     try {
       setIsSubmitting(true);
       setError(null);
+
       if (modalMode === 'add') {
         await workerService.create({ name: currentWorker.name!, role: currentWorker.role! });
       } else if (currentWorker.id) {
-        await workerService.update({ id: currentWorker.id, name: currentWorker.name!, role: currentWorker.role! });
+        await workerService.update({ id: currentWorker.id, name: currentWorker.name, role: currentWorker.role });
       }
+
       setIsModalOpen(false);
       setCurrentWorker({ name: '', role: '' });
       await loadWorkers();
@@ -475,32 +480,48 @@ export const WorkerReport: React.FC = () => {
       const apiError = err as ApiError;
       setError(apiError.message || 'Failed to save worker');
       alert(apiError.message || 'Failed to save worker');
-    } finally { setIsSubmitting(false); }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDeleteWorker = async (id: string) => {
     if (!window.confirm('Are you sure?')) return;
-    try { setError(null); await workerService.delete(id); await loadWorkers(); }
-    catch (err) { const apiError = err as ApiError; setError(apiError.message || 'Failed to delete worker'); alert(apiError.message || 'Failed to delete worker'); }
+
+    try {
+      setError(null);
+      await workerService.delete(id);
+      await loadWorkers();
+    } catch (err) {
+      const apiError = err as ApiError;
+      setError(apiError.message || 'Failed to delete worker');
+      alert(apiError.message || 'Failed to delete worker');
+    }
   };
 
   return (
     <div className="space-y-6 h-[calc(100vh-8rem)] flex flex-col">
       {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">{error}</div>}
 
-      {/* Modal */}
       {isModalOpen && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-gray-50 rounded-xl shadow-2xl w-full max-w-sm p-6">
             <h3 className="font-bold text-lg mb-4">{modalMode === 'add' ? 'Add New Worker' : 'Edit Worker'}</h3>
             <div className="space-y-4">
-              <InputField placeholder="Worker Name" value={currentWorker.name || ''} onChange={e => setCurrentWorker({ ...currentWorker, name: e.target.value })} />
-              <InputField placeholder="Role" value={currentWorker.role || ''} onChange={e => setCurrentWorker({ ...currentWorker, role: e.target.value })} />
+              <InputField
+                placeholder="Worker Name"
+                value={currentWorker.name || ''}
+                onChange={e => setCurrentWorker({ ...currentWorker, name: e.target.value })}
+              />
+              <InputField
+                placeholder="Role (e.g., Master Cutter)"
+                value={currentWorker.role || ''}
+                onChange={e => setCurrentWorker({ ...currentWorker, role: e.target.value })}
+              />
               <div className="flex justify-end gap-2 pt-2">
                 <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-100 rounded-lg" disabled={isSubmitting}>Cancel</button>
-                <button onClick={handleSaveWorker} className="px-4 py-2 bg-purple-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2" disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 className="animate-spin" size={16} />}
-                  Save
+                <button onClick={handleSaveWorker} className="px-4 py-2 bg-purple-600 text-white rounded-lg disabled:opacity-50 flex items-center gap-2" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="animate-spin" size={16} />} Save
                 </button>
               </div>
             </div>
@@ -508,46 +529,60 @@ export const WorkerReport: React.FC = () => {
         </div>
       )}
 
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Worker Reports</h2>
           <p className="text-gray-500 mt-1">Track employee performance and commissions</p>
         </div>
+        <div className="flex gap-4">
+          <div className="bg-orange-50 px-5 py-3 rounded-xl border border-orange-100 text-center">
+            <p className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">TOTAL CUTTING</p>
+            <p className="text-xl font-bold text-orange-600">₹{totalCutting.toLocaleString()}</p>
+          </div>
+          <div className="bg-blue-50 px-5 py-3 rounded-xl border border-blue-100 text-center">
+            <p className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">TOTAL STITCHING</p>
+            <p className="text-xl font-bold text-blue-600">₹{totalStitching.toLocaleString()}</p>
+          </div>
+          <div className="bg-purple-50 px-5 py-3 rounded-xl border border-purple-100 text-center">
+            <p className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">TOTAL COMMISSION</p>
+            <p className="text-xl font-bold text-purple-600">₹{totalCommission.toLocaleString()}</p>
+          </div>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-gray-50 rounded-2xl shadow-sm border border-gray-200 flex-1 flex flex-col overflow-hidden">
-        <div className="overflow-auto flex-1">
-          {filteredWorkers.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400 py-12">
-              <p className="text-lg font-medium">No workers found</p>
-            </div>
-          ) : (
-            <table className="w-full text-left">
-              <thead className="bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider sticky top-0 border-b border-gray-100">
-                <tr>
-                  <th className="px-6 py-4">Worker Name</th>
-                  <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4 text-right text-orange-600">Cutting Amt</th>
-                  <th className="px-6 py-4 text-right text-blue-600">Stitching Amt</th>
-                  <th className="px-6 py-4 text-right text-green-600">Total Commission</th>
+      <div className="overflow-auto flex-1">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full"><Loader2 className="animate-spin" size={24} /></div>
+        ) : filteredWorkers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-gray-400 py-12">
+            <p className="text-lg font-medium">No workers found</p>
+          </div>
+        ) : (
+          <table className="w-full text-left">
+            <thead className="bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider sticky top-0 border-b border-gray-100">
+              <tr>
+                <th className="px-6 py-4">Worker Name</th>
+                <th className="px-6 py-4">Role</th>
+                <th className="px-6 py-4 text-center">Active Jobs</th>
+                <th className="px-6 py-4 text-right text-orange-600">Cutting Amt</th>
+                <th className="px-6 py-4 text-right text-blue-600">Stitching Amt</th>
+                <th className="px-6 py-4 text-right text-green-600">Total Commission</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredWorkers.map(worker => (
+                <tr key={worker.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4">{worker.name}</td>
+                  <td className="px-6 py-4">{worker.role}</td>
+                  <td className="px-6 py-4 text-center">{worker.active_orders ?? 0}</td>
+                  <td className="px-6 py-4 text-right">₹{worker.cutting_earnings?.toLocaleString() ?? 0}</td>
+                  <td className="px-6 py-4 text-right">₹{worker.stitching_earnings?.toLocaleString() ?? 0}</td>
+                  <td className="px-6 py-4 text-right">₹{worker.total_commission?.toLocaleString() ?? 0}</td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {filteredWorkers.map(worker => (
-                  <tr key={worker.id}>
-                    <td className="px-6 py-4">{worker.name}</td>
-                    <td className="px-6 py-4">{worker.role}</td>
-                    <td className="px-6 py-4 text-right font-bold text-orange-600">₹{worker.cutting_earnings?.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-right font-bold text-blue-600">₹{worker.stitching_earnings?.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-right font-bold text-green-600">₹{worker.total_commission?.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
