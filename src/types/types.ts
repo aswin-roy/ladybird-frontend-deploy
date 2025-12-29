@@ -54,6 +54,7 @@ export interface WorkerAssignment {
   name: string;
   task: 'Cutting' | 'Stitching';
   commission: number;
+  date?: string;
 }
 
 export interface Order {
@@ -130,6 +131,9 @@ export interface Worker {
 }
 
 export type ViewState = 'dashboard' | 'customers' | 'orders' | 'workSchedule' | 'measurements' | 'products' | 'sizeCharts' | 'salesEntry' | 'salesReport' | 'workerReport';
+
+
+
 
 
 
