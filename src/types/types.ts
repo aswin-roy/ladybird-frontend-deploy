@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export interface Item {
@@ -129,6 +130,11 @@ export interface Worker {
 }
 
 export type ViewState = 'dashboard' | 'customers' | 'orders' | 'workSchedule' | 'measurements' | 'products' | 'sizeCharts' | 'salesEntry' | 'salesReport' | 'workerReport';
+
+
+
+
+
 
 
 
