@@ -1,4 +1,5 @@
 import { apiClient } from './api';
+import { apiClient } from './api';
 import { Worker } from '../types/types';
 
 export interface CreateWorkerData {
@@ -53,10 +54,23 @@ const mapWorker = (backendWorker: BackendWorker): Worker => {
 };
 
 export const workerService = {
-  async getAll(): Promise<Worker[]> {
+  async getAll(inputParams?: { type?: string; date?: string; month?: number; year?: number; startDate?: string; endDate?: string }): Promise<Worker[]> {
     // Fetch from worker-reports to get commission data
     // The endpoint returns { workers: [...], totalsByTask: {...}, totalCommission: ... } directly
-    const response = await apiClient.get<any>('/worker-reports');
+
+    // Construct query string
+    const params = new URLSearchParams();
+    if (inputParams) {
+      if (inputParams.type) params.append('type', inputParams.type);
+      if (inputParams.date) params.append('date', inputParams.date);
+      if (inputParams.month) params.append('month', inputParams.month.toString());
+      if (inputParams.year) params.append('year', inputParams.year.toString());
+      if (inputParams.startDate) params.append('startDate', inputParams.startDate);
+      if (inputParams.endDate) params.append('endDate', inputParams.endDate);
+    }
+
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    const response = await apiClient.get<any>(`/worker-reports${queryString}`);
 
     // Check if response has workers array directly
     const workersList = response.workers || (response.data && response.data.workers) || [];
@@ -105,7 +119,6 @@ export const workerService = {
 
 
 
-
 ///
 
 /*
@@ -321,6 +334,7 @@ export const workerService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/workers/${id}`)));
   },
 };*/
+
 
 
 
