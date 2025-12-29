@@ -27,7 +27,6 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
             setIsLoading(true);
             setError(null);
             const data = await customerService.getAll();
-           // setCustomers(data);
             setCustomers(data.sort((a, b) => b.id - a.id));
         } catch (err) {
             const apiError = err as ApiError;
@@ -105,6 +104,16 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
         }
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent, nextId: string) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const nextInput = document.getElementById(nextId);
+            if (nextInput) {
+                nextInput.focus();
+            }
+        }
+    };
+
     const openAddModal = () => {
         setModalMode('add');
         setCurrentCustomer({ id: 0, name: '', phone: '', orders: 0, address: '' });
@@ -163,25 +172,37 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Name</label>
                                 <InputField
+                                    id="customer-name"
                                     placeholder="Customer Name"
                                     value={currentCustomer.name}
                                     onChange={(e) => setCurrentCustomer({ ...currentCustomer, name: e.target.value })}
+                                    onKeyDown={(e) => handleKeyDown(e, 'customer-phone')}
+                                    autoFocus
                                 />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Phone</label>
                                 <InputField
+                                    id="customer-phone"
                                     placeholder="Phone Number"
                                     value={currentCustomer.phone}
                                     onChange={(e) => setCurrentCustomer({ ...currentCustomer, phone: e.target.value })}
+                                    onKeyDown={(e) => handleKeyDown(e, 'customer-address')}
                                 />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Address</label>
                                 <InputField
+                                    id="customer-address"
                                     placeholder="Address"
                                     value={currentCustomer.address || ''}
                                     onChange={(e) => setCurrentCustomer({ ...currentCustomer, address: e.target.value })}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleSaveCustomer();
+                                        }
+                                    }}
                                 />
                             </div>
                             <div className="pt-4 flex justify-between items-center gap-2">
@@ -347,3 +368,4 @@ export const Customers: React.FC<{ onNavigate: (view: ViewState) => void }> = ({
         </div>
     );
 };
+
