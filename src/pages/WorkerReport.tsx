@@ -755,7 +755,7 @@ export const WorkerReport: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filter states
-  const [filterType, setFilterType] = useState('month'); // 'month', 'year', 'day', 'custom'
+  const [filterType, setFilterType] = useState('all'); // Set 'all' as default <!-- id: 15 -->
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
@@ -1105,7 +1105,6 @@ export const WorkerReport: React.FC = () => {
     </div>
   );
 };
-
 
 
 
