@@ -560,6 +560,8 @@ export const Orders: React.FC = () => {
 /*/
 
 
+
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Order, WorkerAssignment, Customer } from '../types/types';
 import { InputField, SelectField, Pagination } from '../components';
@@ -1051,6 +1053,7 @@ export const Orders: React.FC = () => {
                                 <th className="px-6 py-4">Item</th>
                                 <th className="px-6 py-4">Workers</th>
                                 <th className="px-6 py-4">Status</th>
+                                <th className="px-6 py-4">Commission</th>
                                 <th className="px-6 py-4">Delivery</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
@@ -1076,6 +1079,11 @@ export const Orders: React.FC = () => {
                                             }`}>
                                             {order.status}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="text-sm font-bold text-emerald-600">
+                                            ₹{(order.workers?.reduce((sum, w) => sum + (w.commission || 0), 0) || 0).toLocaleString()}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 font-medium text-gray-700">{order.delivery_date || '-'}</td>
                                     <td className="px-6 py-4 text-right">
