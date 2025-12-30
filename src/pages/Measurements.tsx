@@ -1,10 +1,12 @@
-/*import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ViewState } from '../types/types';
 import { InputField } from '../components/InputField';
 import { measurementService } from '../services/measurementService';
 import { Search, Plus, X, History, ArrowLeft, Printer, Save, Loader2 } from 'lucide-react';
 import { ApiError } from '../services/api';
 import { Measurement } from '../services/measurementService';
+import { customerService } from '../services/customerService';
+import { Customer } from '../types/types';
 
 export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNavigate }) => {
     const [viewMode, setViewMode] = useState<'list' | 'form'>('list');
@@ -12,11 +14,36 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
     const [measurements, setMeasurements] = useState<Measurement[]>([]);
     const [formData, setFormData] = useState<Record<string, string>>({});
     const [customerName, setCustomerName] = useState('');
-    const [customerId, setCustomerId] = useState<number | null>(null);
+    const [customerId, setCustomerId] = useState<string | null>(null);
     const [selectedHistory, setSelectedHistory] = useState<Measurement[] | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [notes, setNotes] = useState(''); // New state for notes <!-- id: 22 -->
+
+    // New state for customer search
+    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
+
+    useEffect(() => {
+        if (viewMode === 'form') {
+            loadCustomers();
+        }
+    }, [viewMode]);
+
+    const loadCustomers = async () => {
+        try {
+            const data = await customerService.getAll();
+            setCustomers(data);
+        } catch (err) {
+            console.error('Error loading customers:', err);
+        }
+    };
+
+    const filteredCustomers = customers.filter(c =>
+        c.name.toLowerCase().includes(customerName.toLowerCase()) ||
+        c.phone.includes(customerName)
+    );
 
     const upperBodyFields = ["Blouse Length", "Shoulder", "Chest", "Upper Chest", "Waist", "Hip", "Sleeve Length", "Sleeve Round", "Arm Hole", "Front Neck", "Back Neck"];
     const lowerBodyFields = ["Pant Length", "Waist Round", "Hip Round", "Thigh", "Knee", "Calf", "Bottom", "Crotch"];
@@ -61,12 +88,14 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                 customer_name: customerName,
                 measurement_date: new Date().toISOString().split('T')[0],
                 values: formData,
+                notes: notes, // Include notes <!-- id: 23 -->
             });
             alert('Measurements Saved!');
             setViewMode('list');
             setFormData({});
             setCustomerName('');
             setCustomerId(null);
+            setNotes(''); // Reset notes <!-- id: 24 -->
         } catch (err) {
             const apiError = err as ApiError;
             setError(apiError.message || 'Failed to save measurements');
@@ -76,7 +105,7 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
         }
     };
 
-    const handleViewHistory = async (customerId: number, customerName: string) => {
+    const handleViewHistory = async (customerId: string, customerName: string) => {
         try {
             setError(null);
             const history = await measurementService.getByCustomer(customerId);
@@ -88,7 +117,7 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
         }
     };
 
-    const filteredMeasurements = measurements.filter(m => 
+    const filteredMeasurements = measurements.filter(m =>
         m.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -136,7 +165,7 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                             <div className="p-4 border-b flex justify-between items-center bg-gray-100 rounded-t-xl">
                                 <h3 className="font-bold text-lg">History: {selectedHistory[0]?.customer_name}</h3>
                                 <button onClick={() => setSelectedHistory(null)}>
-                                    <X size={20}/>
+                                    <X size={20} />
                                 </button>
                             </div>
                             <div className="p-4 overflow-y-auto space-y-4">
@@ -144,14 +173,15 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                                     <div key={h.id} className="border p-4 rounded-lg bg-gray-50">
                                         <div className="flex justify-between mb-2">
                                             <span className="font-bold text-sm text-gray-600">{h.measurement_date}</span>
-                                            <button 
-                                                onClick={() => { 
-                                                    setFormData(h.values); 
-                                                    setCustomerName(h.customer_name); 
+                                            <button
+                                                onClick={() => {
+                                                    setFormData(h.values);
+                                                    setCustomerName(h.customer_name);
                                                     setCustomerId(h.customer_id);
-                                                    setViewMode('form'); 
-                                                    setSelectedHistory(null); 
-                                                }} 
+                                                    setNotes(h.notes || ''); // Populate notes from history <!-- id: 25 -->
+                                                    setViewMode('form');
+                                                    setSelectedHistory(null);
+                                                }}
                                                 className="text-purple-600 text-xs font-bold hover:underline"
                                             >
                                                 Edit / Use
@@ -179,20 +209,20 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                     <div className="flex gap-3">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                            <InputField 
-                                placeholder="Search customer..." 
+                            <InputField
+                                placeholder="Search customer..."
                                 className="pl-10"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <button 
-                            onClick={() => { 
-                                setCustomerName(''); 
+                        <button
+                            onClick={() => {
+                                setCustomerName('');
                                 setCustomerId(null);
-                                setFormData({}); 
-                                setViewMode('form'); 
-                            }} 
+                                setFormData({});
+                                setViewMode('form');
+                            }}
                             className="bg-purple-600 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 hover:bg-purple-700 shadow-md"
                         >
                             <Plus size={18} /> New Measurement
@@ -220,11 +250,11 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                                                 <p className="text-xs text-gray-500">Last updated: {m.measurement_date}</p>
                                             </div>
                                         </div>
-                                        <button 
-                                            onClick={() => handleViewHistory(m.customer_id, m.customer_name)} 
+                                        <button
+                                            onClick={() => handleViewHistory(m.customer_id, m.customer_name)}
                                             className="text-gray-400 hover:text-purple-600"
                                         >
-                                            <History size={18}/>
+                                            <History size={18} />
                                         </button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-3 bg-gray-50 p-3 rounded-lg">
@@ -235,13 +265,14 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                                             </div>
                                         ))}
                                     </div>
-                                    <button 
-                                        onClick={() => { 
-                                            setCustomerName(m.customer_name); 
+                                    <button
+                                        onClick={() => {
+                                            setCustomerName(m.customer_name);
                                             setCustomerId(m.customer_id);
-                                            setFormData(m.values); 
-                                            setViewMode('form'); 
-                                        }} 
+                                            setFormData(m.values);
+                                            setNotes(m.notes || ''); // Populate notes for edit <!-- id: 26 -->
+                                            setViewMode('form');
+                                        }}
                                         className="w-full py-2 border border-purple-200 text-purple-600 rounded-lg text-sm font-bold hover:bg-purple-50 transition-colors"
                                     >
                                         Edit / Update
@@ -273,26 +304,26 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
             `}</style>
 
             <div className="flex justify-between items-center mb-6 no-print">
-                <button 
-                    onClick={() => setViewMode('list')} 
+                <button
+                    onClick={() => setViewMode('list')}
                     className="flex items-center text-gray-500 hover:text-gray-900"
                 >
-                    <ArrowLeft size={20} className="mr-2"/> Back to List
+                    <ArrowLeft size={20} className="mr-2" /> Back to List
                 </button>
                 <div className="flex gap-3">
-                    <button 
-                        onClick={handlePrint} 
+                    <button
+                        onClick={handlePrint}
                         className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                     >
-                        <Printer size={18}/> Print
+                        <Printer size={18} /> Print
                     </button>
-                    <button 
-                        onClick={handleSave} 
+                    <button
+                        onClick={handleSave}
                         className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={isSubmitting}
                     >
                         {isSubmitting && <Loader2 className="animate-spin" size={18} />}
-                        <Save size={18}/> Save Measurement
+                        <Save size={18} /> Save Measurement
                     </button>
                 </div>
             </div>
@@ -300,14 +331,40 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
             <div id="printable-measurement-sheet" className="p-4">
                 <div className="mb-6 border-b pb-4">
                     <h2 className="text-2xl font-bold text-center text-purple-900 mb-4">MEASUREMENT CHART</h2>
-                    <div className="flex gap-4 items-center justify-center">
-                        <label className="font-bold text-gray-700">Customer Name:</label>
-                        <input 
-                            value={customerName} 
-                            onChange={(e) => setCustomerName(e.target.value)} 
-                            className="border-b-2 border-gray-300 focus:border-purple-600 outline-none px-2 py-1 text-lg font-medium text-center w-64 bg-transparent"
-                            placeholder="Enter Name"
-                        />
+                    <div className="relative">
+                        <label className="font-bold text-gray-700 block mb-1 text-center">Customer Name:</label>
+                        <div className="relative w-64">
+                            <input
+                                value={customerName}
+                                onChange={(e) => {
+                                    setCustomerName(e.target.value);
+                                    setIsCustomerDropdownOpen(true);
+                                    if (!e.target.value) setCustomerId(null);
+                                }}
+                                onFocus={() => setIsCustomerDropdownOpen(true)}
+                                onBlur={() => setTimeout(() => setIsCustomerDropdownOpen(false), 200)}
+                                className="border-b-2 border-gray-300 focus:border-purple-600 outline-none px-2 py-1 text-lg font-medium text-center w-full bg-transparent"
+                                placeholder="Search Customer"
+                            />
+                            {isCustomerDropdownOpen && customerName && !customerId && (
+                                <div className="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20 mt-1 max-h-48 overflow-y-auto text-left">
+                                    {filteredCustomers.length > 0 ? filteredCustomers.map(c => (
+                                        <div
+                                            key={c.id}
+                                            onMouseDown={() => {
+                                                setCustomerName(c.name);
+                                                setCustomerId(c._id || '');
+                                                setIsCustomerDropdownOpen(false);
+                                            }}
+                                            className="p-3 hover:bg-purple-50 cursor-pointer text-sm"
+                                        >
+                                            <p className="font-medium">{c.name}</p>
+                                            <p className="text-xs text-gray-500">{c.phone}</p>
+                                        </div>
+                                    )) : <div className="p-3 text-sm text-gray-500">No customer found.</div>}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -318,10 +375,10 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                             {upperBodyFields.map((field, index) => (
                                 <div key={field}>
                                     <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">{field}</label>
-                                    <input 
+                                    <input
                                         id={`upper-${index}`}
                                         value={formData[field] || ''}
-                                        onChange={(e) => setFormData({...formData, [field]: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
                                         onKeyDown={(e) => handleKeyDown(e, index, 'upper')}
                                         className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded text-sm focus:ring-2 focus:ring-purple-500 outline-none text-center font-medium"
                                     />
@@ -336,10 +393,10 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                             {lowerBodyFields.map((field, index) => (
                                 <div key={field}>
                                     <label className="block text-[10px] uppercase font-bold text-gray-500 mb-1">{field}</label>
-                                    <input 
+                                    <input
                                         id={`lower-${index}`}
                                         value={formData[field] || ''}
-                                        onChange={(e) => setFormData({...formData, [field]: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
                                         onKeyDown={(e) => handleKeyDown(e, index, 'lower')}
                                         className="w-full px-2 py-1.5 bg-white border border-gray-200 rounded text-sm focus:ring-2 focus:ring-purple-500 outline-none text-center font-medium"
                                     />
@@ -351,19 +408,21 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
 
                 <div className="mt-8 border-t pt-4 no-print">
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Notes / Design Details</label>
-                    <textarea 
+                    <textarea
                         className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none"
                         rows={4}
                         placeholder="Add specific design notes here..."
+                        value={notes} // Bind to state <!-- id: 27 -->
+                        onChange={(e) => setNotes(e.target.value)} // Update state on change <!-- id: 28 -->
                     ></textarea>
                 </div>
             </div>
         </div>
     );
 };
-*/
 
-
+//ggood state yet to deploy
+/*
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../types/types';
 import { InputField } from '../components/InputField';
@@ -778,7 +837,7 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
             </div>
         </div>
     );
-};
+};/*/
 //
 
 
