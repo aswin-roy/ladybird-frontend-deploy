@@ -1,27 +1,23 @@
-import { fileURLToPath, URL } from 'url';
+import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
-  const apiKey = env.GEMINI_API_KEY || '';
-
   return {
     server: {
       port: 3000,
       host: '0.0.0.0',
     },
-    plugins: [react(), tailwindcss()],
+    plugins: [react()],
     define: {
-      'process.env.API_KEY': JSON.stringify(apiKey),
-      'process.env.GEMINI_API_KEY': JSON.stringify(apiKey)
+      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
     },
     resolve: {
       alias: {
-        '@': fileURLToPath(new URL('./src', import.meta.url)),
+        '@': path.resolve(__dirname, './src'),
       }
     }
   };
 });
-
