@@ -446,9 +446,8 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [notes, setNotes] = useState(''); // New state for notes <!-- id: 22 -->
+    const [notes, setNotes] = useState('');
 
-    // New state for customer search
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
 
@@ -472,8 +471,16 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
         c.phone.includes(customerName)
     );
 
-    const upperBodyFields = ["Blouse Length", "Shoulder", "Chest", "Upper Chest", "Waist", "Hip", "Sleeve Length", "Sleeve Round", "Arm Hole", "Front Neck", "Back Neck", "Point Length", "Point Width", "Top Length", "Slide Open Length", "York Length", "Collar", "Shirt Length"];
-    const lowerBodyFields = ["Pant Length", "Waist Round", "Hip Round", "Thigh", "Knee", "Calf", "Bottom", "Crotch", "Skirt Length"];
+    const upperBodyFields = [
+        "Blouse Length", "Shoulder", "Chest", "Upper Chest", "Waist", "Hip",
+        "Sleeve Length", "Sleeve Round", "Arm Hole", "Front Neck", "Back Neck",
+        "Point Length", "Point Width", "Top Length", "Slide Open Length",
+        "York Length", "Collar", "Shirt Length"
+    ];
+    const lowerBodyFields = [
+        "Pant Length", "Waist Round", "Hip Round", "Thigh", "Knee", "Calf",
+        "Bottom", "Crotch", "Skirt Length"
+    ];
 
     useEffect(() => {
         if (viewMode === 'list') {
@@ -515,14 +522,14 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                 customer_name: customerName,
                 measurement_date: new Date().toISOString().split('T')[0],
                 values: formData,
-                notes: notes, // Include notes <!-- id: 23 -->
+                notes: notes,
             });
             alert('Measurements Saved!');
             setViewMode('list');
             setFormData({});
             setCustomerName('');
             setCustomerId(null);
-            setNotes(''); // Reset notes <!-- id: 24 -->
+            setNotes('');
         } catch (err) {
             const apiError = err as ApiError;
             setError(apiError.message || 'Failed to save measurements');
@@ -532,21 +539,16 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
         }
     };
 
-    const handleViewHistory = async (customerId: string, customerName: string) => {
+    const handleViewHistory = async (id: string, name: string) => {
         try {
             setError(null);
-            const history = await measurementService.getByCustomer(customerId);
+            const history = await measurementService.getByCustomer(id);
             setSelectedHistory(history);
         } catch (err) {
             const apiError = err as ApiError;
             setError(apiError.message || 'Failed to load history');
-            alert(apiError.message || 'Failed to load history');
         }
     };
-
-    const filteredMeasurements = measurements.filter(m =>
-        m.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
     const uniqueCustomers = Array.from(new Set(measurements.map(m => m.customer_id)))
         .map(id => {
@@ -605,7 +607,7 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                                                     setFormData(h.values);
                                                     setCustomerName(h.customer_name);
                                                     setCustomerId(h.customer_id);
-                                                    setNotes(h.notes || ''); // Populate notes from history <!-- id: 25 -->
+                                                    setNotes(h.notes || '');
                                                     setViewMode('form');
                                                     setSelectedHistory(null);
                                                 }}
@@ -648,6 +650,7 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                                 setCustomerName('');
                                 setCustomerId(null);
                                 setFormData({});
+                                setNotes('');
                                 setViewMode('form');
                             }}
                             className="bg-purple-600 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 hover:bg-purple-700 shadow-md"
@@ -697,7 +700,7 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                                             setCustomerName(m.customer_name);
                                             setCustomerId(m.customer_id);
                                             setFormData(m.values);
-                                            setNotes(m.notes || ''); // Populate notes for edit <!-- id: 26 -->
+                                            setNotes(m.notes || '');
                                             setViewMode('form');
                                         }}
                                         className="w-full py-2 border border-purple-200 text-purple-600 rounded-lg text-sm font-bold hover:bg-purple-50 transition-colors"
@@ -758,9 +761,9 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
             <div id="printable-measurement-sheet" className="p-4">
                 <div className="mb-6 border-b pb-4">
                     <h2 className="text-2xl font-bold text-center text-purple-900 mb-4">MEASUREMENT CHART</h2>
-                    <div className="relative">
-                        <label className="font-bold text-gray-700 block mb-1 text-center">Customer Name:</label>
-                        <div className="relative w-64">
+                    <div className="flex flex-col items-center gap-2">
+                        <label className="font-bold text-gray-700">Customer Name:</label>
+                        <div className="relative w-full max-w-sm">
                             <input
                                 value={customerName}
                                 onChange={(e) => {
@@ -839,8 +842,8 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                         className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none"
                         rows={4}
                         placeholder="Add specific design notes here..."
-                        value={notes} // Bind to state <!-- id: 27 -->
-                        onChange={(e) => setNotes(e.target.value)} // Update state on change <!-- id: 28 -->
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
                     ></textarea>
                 </div>
             </div>
