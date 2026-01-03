@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+/*import React, { useState, useEffect } from 'react';
 import { ViewState } from '../types/types';
 import { InputField } from '../components/InputField';
 import { measurementService } from '../services/measurementService';
@@ -419,10 +419,12 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
             </div>
         </div>
     );
-};
+};/*/
 
-//ggood state yet to deploy
-/*
+
+
+
+
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../types/types';
 import { InputField } from '../components/InputField';
@@ -444,6 +446,7 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [notes, setNotes] = useState(''); // New state for notes <!-- id: 22 -->
 
     // New state for customer search
     const [customers, setCustomers] = useState<Customer[]>([]);
@@ -469,8 +472,8 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
         c.phone.includes(customerName)
     );
 
-    const upperBodyFields = ["Blouse Length", "Shoulder", "Chest", "Upper Chest", "Waist", "Hip", "Sleeve Length", "Sleeve Round", "Arm Hole", "Front Neck", "Back Neck"];
-    const lowerBodyFields = ["Pant Length", "Waist Round", "Hip Round", "Thigh", "Knee", "Calf", "Bottom", "Crotch"];
+    const upperBodyFields = ["Blouse Length", "Shoulder", "Chest", "Upper Chest", "Waist", "Hip", "Sleeve Length", "Sleeve Round", "Arm Hole", "Front Neck", "Back Neck", "Point Length", "Point Width", "Top Length", "Slide Open Length", "York Length", "Collar", "Shirt Length"];
+    const lowerBodyFields = ["Pant Length", "Waist Round", "Hip Round", "Thigh", "Knee", "Calf", "Bottom", "Crotch", "Skirt Length"];
 
     useEffect(() => {
         if (viewMode === 'list') {
@@ -512,12 +515,14 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                 customer_name: customerName,
                 measurement_date: new Date().toISOString().split('T')[0],
                 values: formData,
+                notes: notes, // Include notes <!-- id: 23 -->
             });
             alert('Measurements Saved!');
             setViewMode('list');
             setFormData({});
             setCustomerName('');
             setCustomerId(null);
+            setNotes(''); // Reset notes <!-- id: 24 -->
         } catch (err) {
             const apiError = err as ApiError;
             setError(apiError.message || 'Failed to save measurements');
@@ -600,6 +605,7 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                                                     setFormData(h.values);
                                                     setCustomerName(h.customer_name);
                                                     setCustomerId(h.customer_id);
+                                                    setNotes(h.notes || ''); // Populate notes from history <!-- id: 25 -->
                                                     setViewMode('form');
                                                     setSelectedHistory(null);
                                                 }}
@@ -691,6 +697,7 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                                             setCustomerName(m.customer_name);
                                             setCustomerId(m.customer_id);
                                             setFormData(m.values);
+                                            setNotes(m.notes || ''); // Populate notes for edit <!-- id: 26 -->
                                             setViewMode('form');
                                         }}
                                         className="w-full py-2 border border-purple-200 text-purple-600 rounded-lg text-sm font-bold hover:bg-purple-50 transition-colors"
@@ -832,13 +839,15 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
                         className="w-full p-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none"
                         rows={4}
                         placeholder="Add specific design notes here..."
+                        value={notes} // Bind to state <!-- id: 27 -->
+                        onChange={(e) => setNotes(e.target.value)} // Update state on change <!-- id: 28 -->
                     ></textarea>
                 </div>
             </div>
         </div>
     );
-};/*/
-//
+};
+
 
 
 
