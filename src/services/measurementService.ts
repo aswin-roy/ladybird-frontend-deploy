@@ -243,7 +243,7 @@ const mapKey = (k: string) => {
   const titleMap: Record<string, string> = {
     "blouselength": "Blouse Length", "shoulder": "Shoulder", "chest": "Chest", "upperchest": "Upper Chest", "waist": "Waist", "hip": "Hip", "sleevelength": "Sleeve Length", "sleeveround": "Sleeve Round", "armhole": "Arm Hole", "frontneck": "Front Neck", "backneck": "Back Neck",
     "pantlength": "Pant Length", "waistround": "Waist Round", "hipround": "Hip Round", "thigh": "Thigh", "knee": "Knee", "calf": "Calf", "bottom": "Bottom", "crotch": "Crotch", "skirtlength": "Skirt Length",
-    "pointlength": "Point Length", "pointwidth": "Point Width", "toplength": "Top Length", "slideopenlength": "Slide Open Length", "yorklength": "York Length", "collar": "Collar", "shirtlength": "Shirt Length"
+    "pointlength": "Point Length", "pointwidth": "Point Width", "toplength": "Top Length", "slideopenlength": "Slide Open Length", "yorkelength": "Yorke Length", "collar": "Collar", "shirtlength": "Shirt Length"
   };
   return titleMap[k] || k;
 };
@@ -356,6 +356,7 @@ export const measurementService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/measurements/${id}`)));
   },
 };
+
 
 
 
