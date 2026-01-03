@@ -475,7 +475,7 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
         "Blouse Length", "Shoulder", "Chest", "Upper Chest", "Waist", "Hip",
         "Sleeve Length", "Sleeve Round", "Arm Hole", "Front Neck", "Back Neck",
         "Point Length", "Point Width", "Top Length", "Slide Open Length",
-        "York Length", "Collar", "Shirt Length"
+        "Yorke Length", "Collar", "Shirt Length"
     ];
     const lowerBodyFields = [
         "Pant Length", "Waist Round", "Hip Round", "Thigh", "Knee", "Calf",
