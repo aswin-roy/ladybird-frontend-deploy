@@ -306,7 +306,7 @@ export const measurementService = {
     const lowerBody: any = {};
     const toKey = (str: string) => str.toLowerCase().replace(/\s/g, '');
 
-    const upperFields = ["blouselength", "shoulder", "chest", "upperchest", "waist", "hip", "sleevelength", "sleeveround", "armhole", "frontneck", "backneck", "pointlength", "pointwidth", "toplength", "slideopenlength", "yorklength", "collar", "shirtlength"];
+    const upperFields = ["blouselength", "shoulder", "chest", "upperchest", "waist", "hip", "sleevelength", "sleeveround", "armhole", "frontneck", "backneck", "pointlength", "pointwidth", "toplength", "slideopenlength", "yorkelength", "collar", "shirtlength"];
     const lowerFields = ["pantlength", "waistround", "hipround", "thigh", "knee", "calf", "bottom", "crotch", "skirtlength"];
 
     Object.entries(data.values).forEach(([key, val]) => {
@@ -356,6 +356,7 @@ export const measurementService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/measurements/${id}`)));
   },
 };
+
 
 
 
