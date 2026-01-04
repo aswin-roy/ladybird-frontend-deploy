@@ -423,8 +423,6 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
 
 
 
-
-
 import React, { useState, useEffect } from 'react';
 import { ViewState } from '../types/types';
 import { InputField } from '../components/InputField';
@@ -478,7 +476,7 @@ export const Measurements: React.FC<{ onNavigate: (view: ViewState) => void }> =
         "Yorke Length", "Collar", "Shirt Length"
     ];
     const lowerBodyFields = [
-        "Pant Length", "Waist Round", "Hip Round", "Thigh", "Knee", "Calf",
+        "Pant Length", "Waist Round", "Hip Round", "Seat", "Thigh", "Knee", "Calf",
         "Bottom", "Crotch", "Skirt Length"
     ];
 
