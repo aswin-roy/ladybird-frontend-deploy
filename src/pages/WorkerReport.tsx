@@ -423,9 +423,7 @@ export const WorkerReport: React.FC = () => {
       }
 
       const data = await workerService.getAll(params);
-      // Filter out workers labeled as "Unknown" (orphaned assignments from backend)
-      const validWorkers = data.filter(w => w.name !== 'Unknown');
-      setWorkers(validWorkers);
+      setWorkers(data);
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message || 'Failed to load workers');
@@ -742,6 +740,10 @@ export const WorkerReport: React.FC = () => {
     </div>
   );
 };
+
+
+
+
 
 
 
