@@ -358,6 +358,8 @@ export const orderService = {
 
 
 
+
+
 import { apiClient } from './api';
 import { Order, WorkerAssignment } from '../types/types';
 
@@ -416,20 +418,20 @@ export interface UpdateOrderData {
 const mapOrder = (backendOrder: BackendOrder): Order => {
   const customerId = typeof backendOrder.customerId === 'string'
     ? backendOrder.customerId
-    : backendOrder.customerId._id;
+    : backendOrder.customerId?._id || '';
 
-  const customer = typeof backendOrder.customerId === 'object' && backendOrder.customerId
-    ? (backendOrder.customerId.customername || '')
-    : '';
+  const customer = (typeof backendOrder.customerId === 'object' && backendOrder.customerId)
+    ? (backendOrder.customerId.customername || 'Unknown')
+    : 'Unknown';
 
-  const phone = typeof backendOrder.customerId === 'object' && backendOrder.customerId
+  const phone = (typeof backendOrder.customerId === 'object' && backendOrder.customerId)
     ? String(backendOrder.customerId.customerphone || '')
     : '';
 
   // Map workerAssignment to workers array
   const workers: WorkerAssignment[] = (backendOrder.workerAssignment || []).map(wa => {
-    const workerName = typeof wa.worker === 'object' && wa.worker
-      ? (wa.worker.name || '')
+    const workerName = (typeof wa.worker === 'object' && wa.worker)
+      ? (wa.worker.name || wa.worker.workername || '')
       : '';
 
     return {
@@ -536,18 +538,6 @@ export const orderService = {
     await apiClient.delete(`/orders/${orderId}`);
   },
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
