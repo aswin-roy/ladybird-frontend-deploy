@@ -147,7 +147,7 @@ export const WorkSchedule: React.FC = () => {
                                 <div className="mt-6 space-y-1.5 overflow-y-auto max-h-[calc(100%-1.5rem)] custom-scrollbar">
                                     {daysOrders.map(order => (
                                         <div key={order.id} className={`text-[10px] px-2 py-1 rounded border truncate font-medium ${getStatusColor(order.status)}`}>
-                                            {order.customer}
+                                            {order.customer || 'Unknown'}
                                         </div>
                                     ))}
                                 </div>
@@ -181,7 +181,7 @@ export const WorkSchedule: React.FC = () => {
                                             <div key={order.id} className="flex items-center p-4 bg-gray-50 border border-gray-200 rounded-xl hover:shadow-sm transition-shadow">
                                                 <div className="mr-4">
                                                     <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-lg font-bold text-gray-600">
-                                                        {order.customer.charAt(0)}
+                                                        {(order.customer || 'U').charAt(0)}
                                                     </div>
                                                 </div>
                                                 <div className="flex-1">
@@ -230,4 +230,5 @@ export const WorkSchedule: React.FC = () => {
         </div>
     );
 };
+
 
