@@ -360,6 +360,7 @@ export const orderService = {
 
 
 
+
 import { apiClient } from './api';
 import { Order, WorkerAssignment } from '../types/types';
 
@@ -428,18 +429,20 @@ const mapOrder = (backendOrder: BackendOrder): Order => {
     ? String(backendOrder.customerId.customerphone || '')
     : '';
 
-  // Map workerAssignment to workers array
-  const workers: WorkerAssignment[] = (backendOrder.workerAssignment || []).map(wa => {
-    const workerName = (typeof wa.worker === 'object' && wa.worker)
-      ? (wa.worker.name || wa.worker.workername || '')
-      : '';
+  // Map workerAssignment to workers array and filter out orphaned assignments (deleted workers)
+  const workers: WorkerAssignment[] = (backendOrder.workerAssignment || [])
+    .map(wa => {
+      const workerName = (typeof wa.worker === 'object' && wa.worker)
+        ? (wa.worker.name || wa.worker.workername || '')
+        : '';
 
-    return {
-      name: workerName,
-      task: (wa.task === 'Cutting' ? 'Cutting' : 'Stitching') as 'Cutting' | 'Stitching',
-      commission: wa.commission || 0
-    };
-  });
+      return {
+        name: workerName,
+        task: (wa.task === 'Cutting' ? 'Cutting' : 'Stitching') as 'Cutting' | 'Stitching',
+        commission: wa.commission || 0
+      };
+    })
+    .filter(w => w.name !== '');
 
   // Map status to frontend format
   const statusMap: Record<string, Order['status']> = {
@@ -538,6 +541,13 @@ export const orderService = {
     await apiClient.delete(`/orders/${orderId}`);
   },
 };
+
+
+
+
+
+
+
 
 
 
