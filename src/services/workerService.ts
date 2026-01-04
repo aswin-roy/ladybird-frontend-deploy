@@ -78,27 +78,29 @@ export const workerService = {
       return [];
     }
 
-    return workersList.map((item: any) => {
-      const w = item.worker || {};
-      const totalsByTask = item.totalsByTask || {};
+    return workersList
+      .map((item: any) => {
+        const w = item.worker || {};
+        const totalsByTask = item.totalsByTask || {};
 
-      // Try to find the values from several potential field names
-      const totalCommission = item.totalCommission ?? item.total_commission ?? 0;
-      const cuttingEarnings = totalsByTask.Cutting ?? 0;
-      const stitchingEarnings = totalsByTask.Stitching ?? 0;
+        // Try to find the values from several potential field names
+        const totalCommission = item.totalCommission ?? item.total_commission ?? 0;
+        const cuttingEarnings = totalsByTask.Cutting ?? 0;
+        const stitchingEarnings = totalsByTask.Stitching ?? 0;
 
-      return {
-        id: w.id || w._id || '',
-        _id: w.id || w._id || '',
-        name: w.name || '',
-        role: w.role || '',
-        active_orders: 0,
-        completed_orders: 0,
-        total_commission: totalCommission,
-        cutting_earnings: cuttingEarnings,
-        stitching_earnings: stitchingEarnings,
-      };
-    });
+        return {
+          id: w.id || w._id || '',
+          _id: w.id || w._id || '',
+          name: w.name || '',
+          role: w.role || '',
+          active_orders: 0,
+          completed_orders: 0,
+          total_commission: totalCommission,
+          cutting_earnings: cuttingEarnings,
+          stitching_earnings: stitchingEarnings,
+        };
+      })
+      .filter((w: any) => w.name && w.name !== 'Unknown');
   },
 
   async getById(id: string): Promise<Worker> {
@@ -125,7 +127,6 @@ export const workerService = {
 
 
 
-
 ///
 
 /*
@@ -341,6 +342,7 @@ export const workerService = {
     await Promise.all(ids.map((id) => apiClient.delete(`/workers/${id}`)));
   },
 };*/
+
 
 
 
